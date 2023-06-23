@@ -170,6 +170,7 @@ where
             ActorType::ArticulationLink => {
                 articulation_link_fn(unsafe { &mut *(self as *mut _ as *mut L) })
             }
+            _ => todo!()
         }
     }
 

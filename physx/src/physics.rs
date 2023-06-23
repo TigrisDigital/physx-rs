@@ -82,6 +82,7 @@ use physx_sys::{
     PxTolerancesScale,
     PxTolerancesScale_new,
 };
+use physx_sys::{PxPhysics_createShape_mut, PxPhysics_createShape_mut_2};
 
 pub use self::assert_handler::AssertHandler;
 pub use self::error_callback::ErrorCallback;
@@ -464,7 +465,7 @@ pub trait Physics: Class<physx_sys::PxPhysics> + Sized {
     ) -> Option<Owner<Self::Shape>> {
         unsafe {
             Shape::from_raw(
-                PxPhysics_createShape_mut_1(
+                PxPhysics_createShape_mut_2(
                     self.as_mut_ptr(),
                     geometry.as_ptr(),
                     materials.as_ptr() as *const *mut _,

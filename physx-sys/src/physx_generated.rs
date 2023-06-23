@@ -1,3 +1,5 @@
+type CUdeviceptr = u64;
+
 /// enum for empty constructor tag
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
@@ -260,6 +262,39 @@ pub enum PxTaskType {
     Completed = 2,
 }
 
+/// Possible graphic/CUDA interoperability modes for context
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxCudaInteropMode {
+    NoInterop = 0,
+    D3d10Interop = 1,
+    D3d11Interop = 2,
+    OglInterop = 3,
+    Count = 4,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxCudaInteropRegisterFlag {
+    None = 0,
+    ReadOnly = 1,
+    WriteDiscard = 2,
+    SurfaceLdst = 4,
+    TextureGather = 8,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxCudaInteropRegisterFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxCudaInteropRegisterFlags: u32 {
+        const ReadOnly = 1 << 0;
+        const WriteDiscard = 1 << 1;
+        const SurfaceLdst = 1 << 2;
+        const TextureGather = 1 << 3;
+    }
+}
+
 /// A geometry type.
 ///
 /// Used to distinguish the type of a ::PxGeometry object.
@@ -356,6 +391,465 @@ bitflags::bitflags! {
     }
 }
 
+/// Flags which control the behavior of an actor.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxActorFlag {
+    /// Enable debug renderer for this actor
+    Visualization = 1,
+    /// Disables scene gravity for this actor
+    DisableGravity = 2,
+    /// Enables the sending of PxSimulationEventCallback::onWake() and PxSimulationEventCallback::onSleep() notify events
+    SendSleepNotifies = 4,
+    /// Disables simulation for the actor.
+    ///
+    /// This is only supported by PxRigidStatic and PxRigidDynamic actors and can be used to reduce the memory footprint when rigid actors are
+    /// used for scene queries only.
+    ///
+    /// Setting this flag will remove all constraints attached to the actor from the scene.
+    ///
+    /// If this flag is set, the following calls are forbidden:
+    ///
+    /// PxRigidBody: setLinearVelocity(), setAngularVelocity(), addForce(), addTorque(), clearForce(), clearTorque(), setForceAndTorque()
+    ///
+    /// PxRigidDynamic: setKinematicTarget(), setWakeCounter(), wakeUp(), putToSleep()
+    ///
+    /// Sleeping:
+    /// Raising this flag will set all velocities and the wake counter to 0, clear all forces, clear the kinematic target, put the actor
+    /// to sleep and wake up all touching actors from the previous frame.
+    DisableSimulation = 8,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxActorFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxActorFlags: u8 {
+        const Visualization = 1 << 0;
+        const DisableGravity = 1 << 1;
+        const SendSleepNotifies = 1 << 2;
+        const DisableSimulation = 1 << 3;
+    }
+}
+
+/// Identifies each type of actor.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxActorType {
+    /// A static rigid body
+    RigidStatic = 0,
+    /// A dynamic rigid body
+    RigidDynamic = 1,
+    /// An articulation link
+    ArticulationLink = 2,
+    /// A FEM-based soft body
+    Softbody = 3,
+    /// A FEM-based cloth
+    ///
+    /// In development
+    Femcloth = 4,
+    /// A PBD ParticleSystem
+    PbdParticlesystem = 5,
+    /// A FLIP ParticleSystem
+    ///
+    /// In development
+    FlipParticlesystem = 6,
+    /// A MPM ParticleSystem
+    ///
+    /// In development
+    MpmParticlesystem = 7,
+    /// A CUSTOM ParticleSystem
+    ///
+    /// In development
+    CustomParticlesystem = 8,
+    /// A HairSystem
+    ///
+    /// In development
+    Hairsystem = 9,
+    /// internal use only!
+    ActorCount = 10,
+    /// internal use only!
+    ActorForceDword = 2147483647,
+}
+
+/// Collection of flags describing the actions to take for a collision pair.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxPairFlag {
+    /// Process the contacts of this collision pair in the dynamics solver.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    SolveContact = 1,
+    /// Call contact modification callback for this collision pair
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ModifyContacts = 2,
+    /// Call contact report callback or trigger callback when this collision pair starts to be in contact.
+    ///
+    /// If one of the two collision objects is a trigger shape (see [`PxShapeFlag::eTRIGGER_SHAPE`])
+    /// then the trigger callback will get called as soon as the other object enters the trigger volume.
+    /// If none of the two collision objects is a trigger shape then the contact report callback will get
+    /// called when the actors of this collision pair start to be in contact.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    NotifyTouchFound = 4,
+    /// Call contact report callback while this collision pair is in contact
+    ///
+    /// If none of the two collision objects is a trigger shape then the contact report callback will get
+    /// called while the actors of this collision pair are in contact.
+    ///
+    /// Triggers do not support this event. Persistent trigger contacts need to be tracked separately by observing eNOTIFY_TOUCH_FOUND/eNOTIFY_TOUCH_LOST events.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// No report will get sent if the objects in contact are sleeping.
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    ///
+    /// If this flag gets enabled while a pair is in touch already, there will be no eNOTIFY_TOUCH_PERSISTS events until the pair loses and regains touch.
+    NotifyTouchPersists = 8,
+    /// Call contact report callback or trigger callback when this collision pair stops to be in contact
+    ///
+    /// If one of the two collision objects is a trigger shape (see [`PxShapeFlag::eTRIGGER_SHAPE`])
+    /// then the trigger callback will get called as soon as the other object leaves the trigger volume.
+    /// If none of the two collision objects is a trigger shape then the contact report callback will get
+    /// called when the actors of this collision pair stop to be in contact.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// This event will also get triggered if one of the colliding objects gets deleted.
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    NotifyTouchLost = 16,
+    /// Call contact report callback when this collision pair is in contact during CCD passes.
+    ///
+    /// If CCD with multiple passes is enabled, then a fast moving object might bounce on and off the same
+    /// object multiple times. Hence, the same pair might be in contact multiple times during a simulation step.
+    /// This flag will make sure that all the detected collision during CCD will get reported. For performance
+    /// reasons, the system can not always tell whether the contact pair lost touch in one of the previous CCD
+    /// passes and thus can also not always tell whether the contact is new or has persisted. eNOTIFY_TOUCH_CCD
+    /// just reports when the two collision objects were detected as being in contact during a CCD pass.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// Trigger shapes are not supported.
+    ///
+    /// Only takes effect if eDETECT_CCD_CONTACT is raised
+    NotifyTouchCcd = 32,
+    /// Call contact report callback when the contact force between the actors of this collision pair exceeds one of the actor-defined force thresholds.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    NotifyThresholdForceFound = 64,
+    /// Call contact report callback when the contact force between the actors of this collision pair continues to exceed one of the actor-defined force thresholds.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// If a pair gets re-filtered and this flag has previously been disabled, then the report will not get fired in the same frame even if the force threshold has been reached in the
+    /// previous one (unless [`eNOTIFY_THRESHOLD_FORCE_FOUND`] has been set in the previous frame).
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    NotifyThresholdForcePersists = 128,
+    /// Call contact report callback when the contact force between the actors of this collision pair falls below one of the actor-defined force thresholds (includes the case where this collision pair stops being in contact).
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies.
+    ///
+    /// If a pair gets re-filtered and this flag has previously been disabled, then the report will not get fired in the same frame even if the force threshold has been reached in the
+    /// previous one (unless [`eNOTIFY_THRESHOLD_FORCE_FOUND`] or #eNOTIFY_THRESHOLD_FORCE_PERSISTS has been set in the previous frame).
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    NotifyThresholdForceLost = 256,
+    /// Provide contact points in contact reports for this collision pair.
+    ///
+    /// Only takes effect if the colliding actors are rigid bodies and if used in combination with the flags eNOTIFY_TOUCH_... or eNOTIFY_THRESHOLD_FORCE_...
+    ///
+    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
+    NotifyContactPoints = 512,
+    /// This flag is used to indicate whether this pair generates discrete collision detection contacts.
+    ///
+    /// Contacts are only responded to if eSOLVE_CONTACT is enabled.
+    DetectDiscreteContact = 1024,
+    /// This flag is used to indicate whether this pair generates CCD contacts.
+    ///
+    /// The contacts will only be responded to if eSOLVE_CONTACT is enabled on this pair.
+    ///
+    /// The scene must have PxSceneFlag::eENABLE_CCD enabled to use this feature.
+    ///
+    /// Non-static bodies of the pair should have PxRigidBodyFlag::eENABLE_CCD specified for this feature to work correctly.
+    ///
+    /// This flag is not supported with trigger shapes. However, CCD trigger events can be emulated using non-trigger shapes
+    /// and requesting eNOTIFY_TOUCH_FOUND and eNOTIFY_TOUCH_LOST and not raising eSOLVE_CONTACT on the pair.
+    DetectCcdContact = 2048,
+    /// Provide pre solver velocities in contact reports for this collision pair.
+    ///
+    /// If the collision pair has contact reports enabled, the velocities of the rigid bodies before contacts have been solved
+    /// will be provided in the contact report callback unless the pair lost touch in which case no data will be provided.
+    ///
+    /// Usually it is not necessary to request these velocities as they will be available by querying the velocity from the provided
+    /// PxRigidActor object directly. However, it might be the case that the velocity of a rigid body gets set while the simulation is running
+    /// in which case the PxRigidActor would return this new velocity in the contact report callback and not the velocity the simulation used.
+    PreSolverVelocity = 4096,
+    /// Provide post solver velocities in contact reports for this collision pair.
+    ///
+    /// If the collision pair has contact reports enabled, the velocities of the rigid bodies after contacts have been solved
+    /// will be provided in the contact report callback unless the pair lost touch in which case no data will be provided.
+    PostSolverVelocity = 8192,
+    /// Provide rigid body poses in contact reports for this collision pair.
+    ///
+    /// If the collision pair has contact reports enabled, the rigid body poses at the contact event will be provided
+    /// in the contact report callback unless the pair lost touch in which case no data will be provided.
+    ///
+    /// Usually it is not necessary to request these poses as they will be available by querying the pose from the provided
+    /// PxRigidActor object directly. However, it might be the case that the pose of a rigid body gets set while the simulation is running
+    /// in which case the PxRigidActor would return this new pose in the contact report callback and not the pose the simulation used.
+    /// Another use case is related to CCD with multiple passes enabled, A fast moving object might bounce on and off the same
+    /// object multiple times. This flag can be used to request the rigid body poses at the time of impact for each such collision event.
+    ContactEventPose = 16384,
+    /// For internal use only.
+    NextFree = 32768,
+    /// Provided default flag to do simple contact processing for this collision pair.
+    ContactDefault = 1025,
+    /// Provided default flag to get commonly used trigger behavior for this collision pair.
+    TriggerDefault = 1044,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxPairFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxPairFlags: u16 {
+        const SolveContact = 1 << 0;
+        const ModifyContacts = 1 << 1;
+        const NotifyTouchFound = 1 << 2;
+        const NotifyTouchPersists = 1 << 3;
+        const NotifyTouchLost = 1 << 4;
+        const NotifyTouchCcd = 1 << 5;
+        const NotifyThresholdForceFound = 1 << 6;
+        const NotifyThresholdForcePersists = 1 << 7;
+        const NotifyThresholdForceLost = 1 << 8;
+        const NotifyContactPoints = 1 << 9;
+        const DetectDiscreteContact = 1 << 10;
+        const DetectCcdContact = 1 << 11;
+        const PreSolverVelocity = 1 << 12;
+        const PostSolverVelocity = 1 << 13;
+        const ContactEventPose = 1 << 14;
+        const NextFree = 1 << 15;
+        const ContactDefault = Self::SolveContact.bits | Self::DetectDiscreteContact.bits;
+        const TriggerDefault = Self::NotifyTouchFound.bits | Self::NotifyTouchLost.bits | Self::DetectDiscreteContact.bits;
+    }
+}
+
+/// Collection of flags describing the filter actions to take for a collision pair.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxFilterFlag {
+    /// Ignore the collision pair as long as the bounding volumes of the pair objects overlap.
+    ///
+    /// Killed pairs will be ignored by the simulation and won't run through the filter again until one
+    /// of the following occurs:
+    ///
+    /// The bounding volumes of the two objects overlap again (after being separated)
+    ///
+    /// The user enforces a re-filtering (see [`PxScene::resetFiltering`]())
+    Kill = 1,
+    /// Ignore the collision pair as long as the bounding volumes of the pair objects overlap or until filtering relevant data changes for one of the collision objects.
+    ///
+    /// Suppressed pairs will be ignored by the simulation and won't make another filter request until one
+    /// of the following occurs:
+    ///
+    /// Same conditions as for killed pairs (see [`eKILL`])
+    ///
+    /// The filter data or the filter object attributes change for one of the collision objects
+    Suppress = 2,
+    /// Invoke the filter callback ([`PxSimulationFilterCallback::pairFound`]()) for this collision pair.
+    Callback = 4,
+    /// Track this collision pair with the filter callback mechanism.
+    ///
+    /// When the bounding volumes of the collision pair lose contact, the filter callback [`PxSimulationFilterCallback::pairLost`]()
+    /// will be invoked. Furthermore, the filter status of the collision pair can be adjusted through [`PxSimulationFilterCallback::statusChange`]()
+    /// once per frame (until a pairLost() notification occurs).
+    Notify = 12,
+    /// Provided default to get standard behavior:
+    ///
+    /// The application configure the pair's collision properties once when bounding volume overlap is found and
+    /// doesn't get asked again about that pair until overlap status or filter properties changes, or re-filtering is requested.
+    ///
+    /// No notification is provided when bounding volume overlap is lost
+    ///
+    /// The pair will not be killed or suppressed, so collision detection will be processed
+    Default = 0,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxFilterFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxFilterFlags: u16 {
+        const Kill = 1 << 0;
+        const Suppress = 1 << 1;
+        const Callback = 1 << 2;
+        const Notify = Self::Callback.bits;
+    }
+}
+
+/// Identifies each type of filter object.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxFilterObjectType {
+    /// A static rigid body
+    RigidStatic = 0,
+    /// A dynamic rigid body
+    RigidDynamic = 1,
+    /// An articulation
+    Articulation = 2,
+    /// A particle system
+    Particlesystem = 3,
+    /// A FEM-based soft body
+    Softbody = 4,
+    /// A FEM-based cloth
+    ///
+    /// In development
+    Femcloth = 5,
+    /// A hair system
+    ///
+    /// In development
+    Hairsystem = 6,
+    /// internal use only!
+    MaxTypeCount = 16,
+    /// internal use only!
+    Undefined = 15,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxFilterObjectFlag {
+    Kinematic = 16,
+    Trigger = 32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxPairFilteringMode {
+    /// Output pair from BP, potentially send to user callbacks, create regular interaction object.
+    ///
+    /// Enable contact pair filtering between kinematic/static or kinematic/kinematic rigid bodies.
+    ///
+    /// By default contacts between these are suppressed (see [`PxFilterFlag::eSUPPRESS`]) and don't get reported to the filter mechanism.
+    /// Use this mode if these pairs should go through the filtering pipeline nonetheless.
+    ///
+    /// This mode is not mutable, and must be set in PxSceneDesc at scene creation.
+    Keep = 0,
+    /// Output pair from BP, create interaction marker. Can be later switched to regular interaction.
+    Suppress = 1,
+    /// Don't output pair from BP. Cannot be later switched to regular interaction, needs "resetFiltering" call.
+    Kill = 2,
+    // Default is eSUPPRESS for compatibility with previous PhysX versions.
+    //Default = 1,
+}
+
+/// Identifies dirty particle buffers that need to be updated in the particle system.
+///
+/// This flag can be used mark the device user buffers that are dirty and need to be written to the particle system.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxParticleBufferFlag {
+    /// No data specified
+    None = 0,
+    /// Specifies the position (first 3 floats) and inverse mass (last float) data (array of PxVec4 * number of particles)
+    UpdatePosition = 1,
+    /// Specifies the velocity (first 3 floats) data (array of PxVec4 * number of particles)
+    UpdateVelocity = 2,
+    /// Specifies the per-particle phase flag data (array of PxU32 * number of particles)
+    UpdatePhase = 4,
+    /// Specifies the rest position (first 3 floats) data for cloth buffers
+    UpdateRestposition = 8,
+    /// Specifies the cloth buffer (see PxParticleClothBuffer)
+    UpdateCloth = 32,
+    /// Specifies the rigid buffer (see PxParticleRigidBuffer)
+    UpdateRigid = 64,
+    /// Specifies the diffuse particle parameter buffer (see PxDiffuseParticleParams)
+    UpdateDiffuseParam = 128,
+    /// Specifies the attachments.
+    UpdateAttachments = 256,
+    All = 495,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxParticleBufferFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxParticleBufferFlags: u32 {
+        const UpdatePosition = 1 << 0;
+        const UpdateVelocity = 1 << 1;
+        const UpdatePhase = 1 << 2;
+        const UpdateRestposition = 1 << 3;
+        const UpdateCloth = 1 << 5;
+        const UpdateRigid = 1 << 6;
+        const UpdateDiffuseParam = 1 << 7;
+        const UpdateAttachments = 1 << 8;
+        const All = Self::UpdatePosition.bits | Self::UpdateVelocity.bits | Self::UpdatePhase.bits | Self::UpdateRestposition.bits | Self::UpdateCloth.bits | Self::UpdateRigid.bits | Self::UpdateDiffuseParam.bits | Self::UpdateAttachments.bits;
+    }
+}
+
+/// Identifies per-particle behavior for a PxParticleSystem.
+///
+/// See [`PxParticleSystem::createPhase`]().
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum PxParticlePhaseFlag {
+    /// Bits [ 0, 19] represent the particle group for controlling collisions
+    ParticlePhaseGroupMask = 1048575,
+    /// Bits [20, 23] hold flags about how the particle behave
+    ParticlePhaseFlagsMask = 4293918720,
+    /// If set this particle will interact with particles of the same group
+    ParticlePhaseSelfCollide = 1048576,
+    /// If set this particle will ignore collisions with particles closer than the radius in the rest pose, this flag should not be specified unless valid rest positions have been specified using setRestParticles()
+    ParticlePhaseSelfCollideFilter = 2097152,
+    /// If set this particle will generate fluid density constraints for its overlapping neighbors
+    ParticlePhaseFluid = 4194304,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxParticlePhaseFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxParticlePhaseFlags: u32 {
+        const ParticlePhaseGroupMask = 0x000fffff;
+        const ParticlePhaseFlagsMask = Self::ParticlePhaseSelfCollide.bits | Self::ParticlePhaseSelfCollideFilter.bits | Self::ParticlePhaseFluid.bits;
+        const ParticlePhaseSelfCollide = 1 << 20;
+        const ParticlePhaseSelfCollideFilter = 1 << 21;
+        const ParticlePhaseFluid = 1 << 22;
+    }
+}
+
+/// Flags which control the behaviour of a particle system.
+///
+/// See [`PxParticleSystem::setParticleFlag`](), #PxParticleSystem::setParticleFlags(), #PxParticleSystem::getParticleFlags()
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i32)]
+pub enum PxParticleFlag {
+    /// Disables particle self-collision
+    DisableSelfCollision = 1,
+    /// Disables particle-rigid body collision
+    DisableRigidCollision = 2,
+    /// Enables full advection of diffuse particles. By default, diffuse particles are advected only by particles in the cell they are contained. This flag enables full neighbourhood generation (more expensive).
+    FullDiffuseAdvection = 4,
+}
+
+bitflags::bitflags! {
+    /// Flags for [`PxParticleFlag`]
+    #[derive(Default)]
+    #[repr(transparent)]
+    pub struct PxParticleFlags: u32 {
+        const DisableSelfCollision = 1 << 0;
+        const DisableRigidCollision = 1 << 1;
+        const FullDiffuseAdvection = 1 << 2;
+    }
+}
+
 /// Identifies the solver to use for a particle system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
@@ -440,6 +934,8 @@ pub enum PxHeightFieldFormat {
     ///
     /// Each sample is 32 bits wide arranged as follows:
     ///
+    /// html heightFieldFormat_S16_TM.png
+    ///
     /// 1) First there is a 16 bit height value.
     /// 2) Next, two one byte material indices, with the high bit of each byte reserved for special use.
     /// (so the material index is only 7 bits).
@@ -461,6 +957,8 @@ pub enum PxHeightFieldTessFlag {
     ///
     /// The flag lowered indicates subdivision like this: (the 0th vertex is referenced by only one triangle)
     ///
+    /// html heightfieldTriMat2.PNG
+    ///
     /// +--+--+--+---> column
     /// | /| /| /|
     /// |/ |/ |/ |
@@ -473,6 +971,8 @@ pub enum PxHeightFieldTessFlag {
     /// V row
     ///
     /// The flag raised indicates subdivision like this: (the 0th vertex is shared by two triangles)
+    ///
+    /// html heightfieldTriMat1.PNG
     ///
     /// +--+--+--+---> column
     /// |
@@ -646,59 +1146,6 @@ bitflags::bitflags! {
     pub struct PxTetrahedronMeshFlags: u8 {
         const E16BitIndices = 1 << 1;
     }
-}
-
-/// Flags which control the behavior of an actor.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxActorFlag {
-    /// Enable debug renderer for this actor
-    Visualization = 1,
-    /// Disables scene gravity for this actor
-    DisableGravity = 2,
-    /// Enables the sending of PxSimulationEventCallback::onWake() and PxSimulationEventCallback::onSleep() notify events
-    SendSleepNotifies = 4,
-    /// Disables simulation for the actor.
-    ///
-    /// This is only supported by PxRigidStatic and PxRigidDynamic actors and can be used to reduce the memory footprint when rigid actors are
-    /// used for scene queries only.
-    ///
-    /// Setting this flag will remove all constraints attached to the actor from the scene.
-    ///
-    /// If this flag is set, the following calls are forbidden:
-    ///
-    /// PxRigidBody: setLinearVelocity(), setAngularVelocity(), addForce(), addTorque(), clearForce(), clearTorque(), setForceAndTorque()
-    ///
-    /// PxRigidDynamic: setKinematicTarget(), setWakeCounter(), wakeUp(), putToSleep()
-    ///
-    /// Sleeping:
-    /// Raising this flag will set all velocities and the wake counter to 0, clear all forces, clear the kinematic target, put the actor
-    /// to sleep and wake up all touching actors from the previous frame.
-    DisableSimulation = 8,
-}
-
-bitflags::bitflags! {
-    /// Flags for [`PxActorFlag`]
-    #[derive(Default)]
-    #[repr(transparent)]
-    pub struct PxActorFlags: u8 {
-        const Visualization = 1 << 0;
-        const DisableGravity = 1 << 1;
-        const SendSleepNotifies = 1 << 2;
-        const DisableSimulation = 1 << 3;
-    }
-}
-
-/// Identifies each type of actor.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxActorType {
-    /// A static rigid body
-    RigidStatic = 0,
-    /// A dynamic rigid body
-    RigidDynamic = 1,
-    /// An articulation link
-    ArticulationLink = 2,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1303,282 +1750,6 @@ bitflags::bitflags! {
     }
 }
 
-/// Collection of flags describing the actions to take for a collision pair.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxPairFlag {
-    /// Process the contacts of this collision pair in the dynamics solver.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    SolveContact = 1,
-    /// Call contact modification callback for this collision pair
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ModifyContacts = 2,
-    /// Call contact report callback or trigger callback when this collision pair starts to be in contact.
-    ///
-    /// If one of the two collision objects is a trigger shape (see [`PxShapeFlag::eTRIGGER_SHAPE`])
-    /// then the trigger callback will get called as soon as the other object enters the trigger volume.
-    /// If none of the two collision objects is a trigger shape then the contact report callback will get
-    /// called when the actors of this collision pair start to be in contact.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    NotifyTouchFound = 4,
-    /// Call contact report callback while this collision pair is in contact
-    ///
-    /// If none of the two collision objects is a trigger shape then the contact report callback will get
-    /// called while the actors of this collision pair are in contact.
-    ///
-    /// Triggers do not support this event. Persistent trigger contacts need to be tracked separately by observing eNOTIFY_TOUCH_FOUND/eNOTIFY_TOUCH_LOST events.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// No report will get sent if the objects in contact are sleeping.
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    ///
-    /// If this flag gets enabled while a pair is in touch already, there will be no eNOTIFY_TOUCH_PERSISTS events until the pair loses and regains touch.
-    NotifyTouchPersists = 8,
-    /// Call contact report callback or trigger callback when this collision pair stops to be in contact
-    ///
-    /// If one of the two collision objects is a trigger shape (see [`PxShapeFlag::eTRIGGER_SHAPE`])
-    /// then the trigger callback will get called as soon as the other object leaves the trigger volume.
-    /// If none of the two collision objects is a trigger shape then the contact report callback will get
-    /// called when the actors of this collision pair stop to be in contact.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// This event will also get triggered if one of the colliding objects gets deleted.
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    NotifyTouchLost = 16,
-    /// Call contact report callback when this collision pair is in contact during CCD passes.
-    ///
-    /// If CCD with multiple passes is enabled, then a fast moving object might bounce on and off the same
-    /// object multiple times. Hence, the same pair might be in contact multiple times during a simulation step.
-    /// This flag will make sure that all the detected collision during CCD will get reported. For performance
-    /// reasons, the system can not always tell whether the contact pair lost touch in one of the previous CCD
-    /// passes and thus can also not always tell whether the contact is new or has persisted. eNOTIFY_TOUCH_CCD
-    /// just reports when the two collision objects were detected as being in contact during a CCD pass.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// Trigger shapes are not supported.
-    ///
-    /// Only takes effect if eDETECT_CCD_CONTACT is raised
-    NotifyTouchCcd = 32,
-    /// Call contact report callback when the contact force between the actors of this collision pair exceeds one of the actor-defined force thresholds.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    NotifyThresholdForceFound = 64,
-    /// Call contact report callback when the contact force between the actors of this collision pair continues to exceed one of the actor-defined force thresholds.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// If a pair gets re-filtered and this flag has previously been disabled, then the report will not get fired in the same frame even if the force threshold has been reached in the
-    /// previous one (unless [`eNOTIFY_THRESHOLD_FORCE_FOUND`] has been set in the previous frame).
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    NotifyThresholdForcePersists = 128,
-    /// Call contact report callback when the contact force between the actors of this collision pair falls below one of the actor-defined force thresholds (includes the case where this collision pair stops being in contact).
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies.
-    ///
-    /// If a pair gets re-filtered and this flag has previously been disabled, then the report will not get fired in the same frame even if the force threshold has been reached in the
-    /// previous one (unless [`eNOTIFY_THRESHOLD_FORCE_FOUND`] or #eNOTIFY_THRESHOLD_FORCE_PERSISTS has been set in the previous frame).
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    NotifyThresholdForceLost = 256,
-    /// Provide contact points in contact reports for this collision pair.
-    ///
-    /// Only takes effect if the colliding actors are rigid bodies and if used in combination with the flags eNOTIFY_TOUCH_... or eNOTIFY_THRESHOLD_FORCE_...
-    ///
-    /// Only takes effect if eDETECT_DISCRETE_CONTACT or eDETECT_CCD_CONTACT is raised
-    NotifyContactPoints = 512,
-    /// This flag is used to indicate whether this pair generates discrete collision detection contacts.
-    ///
-    /// Contacts are only responded to if eSOLVE_CONTACT is enabled.
-    DetectDiscreteContact = 1024,
-    /// This flag is used to indicate whether this pair generates CCD contacts.
-    ///
-    /// The contacts will only be responded to if eSOLVE_CONTACT is enabled on this pair.
-    ///
-    /// The scene must have PxSceneFlag::eENABLE_CCD enabled to use this feature.
-    ///
-    /// Non-static bodies of the pair should have PxRigidBodyFlag::eENABLE_CCD specified for this feature to work correctly.
-    ///
-    /// This flag is not supported with trigger shapes. However, CCD trigger events can be emulated using non-trigger shapes
-    /// and requesting eNOTIFY_TOUCH_FOUND and eNOTIFY_TOUCH_LOST and not raising eSOLVE_CONTACT on the pair.
-    DetectCcdContact = 2048,
-    /// Provide pre solver velocities in contact reports for this collision pair.
-    ///
-    /// If the collision pair has contact reports enabled, the velocities of the rigid bodies before contacts have been solved
-    /// will be provided in the contact report callback unless the pair lost touch in which case no data will be provided.
-    ///
-    /// Usually it is not necessary to request these velocities as they will be available by querying the velocity from the provided
-    /// PxRigidActor object directly. However, it might be the case that the velocity of a rigid body gets set while the simulation is running
-    /// in which case the PxRigidActor would return this new velocity in the contact report callback and not the velocity the simulation used.
-    PreSolverVelocity = 4096,
-    /// Provide post solver velocities in contact reports for this collision pair.
-    ///
-    /// If the collision pair has contact reports enabled, the velocities of the rigid bodies after contacts have been solved
-    /// will be provided in the contact report callback unless the pair lost touch in which case no data will be provided.
-    PostSolverVelocity = 8192,
-    /// Provide rigid body poses in contact reports for this collision pair.
-    ///
-    /// If the collision pair has contact reports enabled, the rigid body poses at the contact event will be provided
-    /// in the contact report callback unless the pair lost touch in which case no data will be provided.
-    ///
-    /// Usually it is not necessary to request these poses as they will be available by querying the pose from the provided
-    /// PxRigidActor object directly. However, it might be the case that the pose of a rigid body gets set while the simulation is running
-    /// in which case the PxRigidActor would return this new pose in the contact report callback and not the pose the simulation used.
-    /// Another use case is related to CCD with multiple passes enabled, A fast moving object might bounce on and off the same
-    /// object multiple times. This flag can be used to request the rigid body poses at the time of impact for each such collision event.
-    ContactEventPose = 16384,
-    /// For internal use only.
-    NextFree = 32768,
-    /// Provided default flag to do simple contact processing for this collision pair.
-    ContactDefault = 1025,
-    /// Provided default flag to get commonly used trigger behavior for this collision pair.
-    TriggerDefault = 1044,
-}
-
-bitflags::bitflags! {
-    /// Flags for [`PxPairFlag`]
-    #[derive(Default)]
-    #[repr(transparent)]
-    pub struct PxPairFlags: u16 {
-        const SolveContact = 1 << 0;
-        const ModifyContacts = 1 << 1;
-        const NotifyTouchFound = 1 << 2;
-        const NotifyTouchPersists = 1 << 3;
-        const NotifyTouchLost = 1 << 4;
-        const NotifyTouchCcd = 1 << 5;
-        const NotifyThresholdForceFound = 1 << 6;
-        const NotifyThresholdForcePersists = 1 << 7;
-        const NotifyThresholdForceLost = 1 << 8;
-        const NotifyContactPoints = 1 << 9;
-        const DetectDiscreteContact = 1 << 10;
-        const DetectCcdContact = 1 << 11;
-        const PreSolverVelocity = 1 << 12;
-        const PostSolverVelocity = 1 << 13;
-        const ContactEventPose = 1 << 14;
-        const NextFree = 1 << 15;
-        const ContactDefault = Self::SolveContact.bits | Self::DetectDiscreteContact.bits;
-        const TriggerDefault = Self::NotifyTouchFound.bits | Self::NotifyTouchLost.bits | Self::DetectDiscreteContact.bits;
-    }
-}
-
-/// Collection of flags describing the filter actions to take for a collision pair.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxFilterFlag {
-    /// Ignore the collision pair as long as the bounding volumes of the pair objects overlap.
-    ///
-    /// Killed pairs will be ignored by the simulation and won't run through the filter again until one
-    /// of the following occurs:
-    ///
-    /// The bounding volumes of the two objects overlap again (after being separated)
-    ///
-    /// The user enforces a re-filtering (see [`PxScene::resetFiltering`]())
-    Kill = 1,
-    /// Ignore the collision pair as long as the bounding volumes of the pair objects overlap or until filtering relevant data changes for one of the collision objects.
-    ///
-    /// Suppressed pairs will be ignored by the simulation and won't make another filter request until one
-    /// of the following occurs:
-    ///
-    /// Same conditions as for killed pairs (see [`eKILL`])
-    ///
-    /// The filter data or the filter object attributes change for one of the collision objects
-    Suppress = 2,
-    /// Invoke the filter callback ([`PxSimulationFilterCallback::pairFound`]()) for this collision pair.
-    Callback = 4,
-    /// Track this collision pair with the filter callback mechanism.
-    ///
-    /// When the bounding volumes of the collision pair lose contact, the filter callback [`PxSimulationFilterCallback::pairLost`]()
-    /// will be invoked. Furthermore, the filter status of the collision pair can be adjusted through [`PxSimulationFilterCallback::statusChange`]()
-    /// once per frame (until a pairLost() notification occurs).
-    Notify = 12,
-    /// Provided default to get standard behavior:
-    ///
-    /// The application configure the pair's collision properties once when bounding volume overlap is found and
-    /// doesn't get asked again about that pair until overlap status or filter properties changes, or re-filtering is requested.
-    ///
-    /// No notification is provided when bounding volume overlap is lost
-    ///
-    /// The pair will not be killed or suppressed, so collision detection will be processed
-    Default = 0,
-}
-
-bitflags::bitflags! {
-    /// Flags for [`PxFilterFlag`]
-    #[derive(Default)]
-    #[repr(transparent)]
-    pub struct PxFilterFlags: u16 {
-        const Kill = 1 << 0;
-        const Suppress = 1 << 1;
-        const Callback = 1 << 2;
-        const Notify = Self::Callback.bits;
-    }
-}
-
-/// Identifies each type of filter object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxFilterObjectType {
-    /// A static rigid body
-    RigidStatic = 0,
-    /// A dynamic rigid body
-    RigidDynamic = 1,
-    /// An articulation
-    Articulation = 2,
-    /// A particle system
-    Particlesystem = 3,
-    /// A FEM-based soft body
-    Softbody = 4,
-    /// A FEM-based cloth
-    ///
-    /// In development
-    Femcloth = 5,
-    /// A hair system
-    ///
-    /// In development
-    Hairsystem = 6,
-    /// internal use only!
-    MaxTypeCount = 16,
-    /// internal use only!
-    Undefined = 15,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxFilterObjectFlag {
-    Kinematic = 16,
-    Trigger = 32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxPairFilteringMode {
-    /// Output pair from BP, potentially send to user callbacks, create regular interaction object.
-    ///
-    /// Enable contact pair filtering between kinematic/static or kinematic/kinematic rigid bodies.
-    ///
-    /// By default contacts between these are suppressed (see [`PxFilterFlag::eSUPPRESS`]) and don't get reported to the filter mechanism.
-    /// Use this mode if these pairs should go through the filtering pipeline nonetheless.
-    ///
-    /// This mode is not mutable, and must be set in PxSceneDesc at scene creation.
-    Keep = 0,
-    /// Output pair from BP, create interaction marker. Can be later switched to regular interaction.
-    Suppress = 1,
-    /// Don't output pair from BP. Cannot be later switched to regular interaction, needs "resetFiltering" call.
-    Kill = 2,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
 pub enum PxDataAccessFlag {
@@ -1681,81 +1852,6 @@ pub enum PxCombineMode {
     Pad32 = 2147483647,
 }
 
-/// Identifies dirty particle buffers that need to be updated in the particle system.
-///
-/// This flag can be used mark the device user buffers that are dirty and need to be written to the particle system.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(i32)]
-pub enum PxParticleBufferFlag {
-    /// No data specified
-    None = 0,
-    /// Specifies the position (first 3 floats) and inverse mass (last float) data (array of PxVec4 * number of particles)
-    UpdatePosition = 1,
-    /// Specifies the velocity (first 3 floats) data (array of PxVec4 * number of particles)
-    UpdateVelocity = 2,
-    /// Specifies the per-particle phase flag data (array of PxU32 * number of particles)
-    UpdatePhase = 4,
-    /// Specifies the rest position (first 3 floats) data for cloth buffers
-    UpdateRestposition = 8,
-    /// Specifies the cloth buffer (see PxParticleClothBuffer)
-    UpdateCloth = 32,
-    /// Specifies the rigid buffer (see PxParticleRigidBuffer)
-    UpdateRigid = 64,
-    /// Specifies the diffuse particle parameter buffer (see PxDiffuseParticleParams)
-    UpdateDiffuseParam = 128,
-    /// Specifies the attachments.
-    UpdateAttachments = 256,
-    All = 495,
-}
-
-bitflags::bitflags! {
-    /// Flags for [`PxParticleBufferFlag`]
-    #[derive(Default)]
-    #[repr(transparent)]
-    pub struct PxParticleBufferFlags: u32 {
-        const UpdatePosition = 1 << 0;
-        const UpdateVelocity = 1 << 1;
-        const UpdatePhase = 1 << 2;
-        const UpdateRestposition = 1 << 3;
-        const UpdateCloth = 1 << 5;
-        const UpdateRigid = 1 << 6;
-        const UpdateDiffuseParam = 1 << 7;
-        const UpdateAttachments = 1 << 8;
-        const All = Self::UpdatePosition.bits | Self::UpdateVelocity.bits | Self::UpdatePhase.bits | Self::UpdateRestposition.bits | Self::UpdateCloth.bits | Self::UpdateRigid.bits | Self::UpdateDiffuseParam.bits | Self::UpdateAttachments.bits;
-    }
-}
-
-/// Identifies per-particle behavior for a PxParticleSystem.
-///
-/// See [`PxParticleSystem::createPhase`]().
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u32)]
-pub enum PxParticlePhaseFlag {
-    /// Bits [ 0, 19] represent the particle group for controlling collisions
-    ParticlePhaseGroupMask = 1048575,
-    /// Bits [20, 23] hold flags about how the particle behave
-    ParticlePhaseFlagsMask = 4293918720,
-    /// If set this particle will interact with particles of the same group
-    ParticlePhaseSelfCollide = 1048576,
-    /// If set this particle will ignore collisions with particles closer than the radius in the rest pose, this flag should not be specified unless valid rest positions have been specified using setRestParticles()
-    ParticlePhaseSelfCollideFilter = 2097152,
-    /// If set this particle will generate fluid density constraints for its overlapping neighbors
-    ParticlePhaseFluid = 4194304,
-}
-
-bitflags::bitflags! {
-    /// Flags for [`PxParticlePhaseFlag`]
-    #[derive(Default)]
-    #[repr(transparent)]
-    pub struct PxParticlePhaseFlags: u32 {
-        const ParticlePhaseGroupMask = 0x000fffff;
-        const ParticlePhaseFlagsMask = Self::ParticlePhaseSelfCollide.bits | Self::ParticlePhaseSelfCollideFilter.bits | Self::ParticlePhaseFluid.bits;
-        const ParticlePhaseSelfCollide = 1 << 20;
-        const ParticlePhaseSelfCollideFilter = 1 << 21;
-        const ParticlePhaseFluid = 1 << 22;
-    }
-}
-
 /// Specifies memory space for a PxBuffer instance.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
@@ -1800,6 +1896,7 @@ bitflags::bitflags! {
         const Postfilter = 1 << 3;
         const AnyHit = 1 << 4;
         const NoBlock = 1 << 5;
+        const BatchQueryLegacyBehaviour = 1 << 6;
         const DisableHardcodedFilter = 1 << 6;
         const Reserved = 1 << 15;
     }
@@ -3444,19 +3541,7 @@ pub struct PxTypeInfo {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct PxFEMSoftBodyMaterial {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
 pub struct PxFEMClothMaterial {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxPBDMaterial {
     _unused: [u8; 0],
 }
 
@@ -3474,25 +3559,7 @@ pub struct PxMPMMaterial {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct PxCustomMaterial {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
 pub struct PxBVH33TriangleMesh {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxParticleSystem {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxPBDParticleSystem {
     _unused: [u8; 0],
 }
 
@@ -3532,30 +3599,6 @@ pub struct PxHairSystem {
     _unused: [u8; 0],
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxParticleBuffer {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxParticleAndDiffuseBuffer {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxParticleClothBuffer {
-    _unused: [u8; 0],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxParticleRigidBuffer {
-    _unused: [u8; 0],
-}
-
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
@@ -3591,6 +3634,69 @@ pub struct PxCpuDispatcher {
     vtable_: *const std::ffi::c_void,
 }
 
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct CUctx_st {
+    _unused: [u8; 0],
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct CUmod_st {
+    _unused: [u8; 0],
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct CUfunc_st {
+    _unused: [u8; 0],
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct CUstream_st {
+    _unused: [u8; 0],
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct CUevent_st {
+    _unused: [u8; 0],
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct CUgraphicsResource_st {
+    _unused: [u8; 0],
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct PxCudaContext {
+    _unused: [u8; 0],
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxDeviceAllocatorCallback {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxCudaContextManager {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxGpuLoadHook {
+    vtable_: *const std::ffi::c_void,
+}
+
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
@@ -3609,6 +3715,26 @@ pub struct PxBVHOverlapCallback {
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
 pub struct PxBVHTraversalCallback {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxSimulationFilterCallback {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct PxGpuParticleSystem {
+    _unused: [u8; 0],
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleSystemCallback {
     vtable_: *const std::ffi::c_void,
 }
 
@@ -3689,27 +3815,28 @@ pub struct PxDeletionListener {
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
-pub struct PxSimulationFilterCallback {
-    vtable_: *const std::ffi::c_void,
-}
-
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
 pub struct PxLockedData {
     vtable_: *const std::ffi::c_void,
 }
 
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct PxCudaContextManager {
+pub struct PxParticleRigidAttachment {
     _unused: [u8; 0],
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
-pub struct PxParticleRigidAttachment {
-    _unused: [u8; 0],
+pub struct PxParticleClothPreProcessor {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxBuffer {
+    vtable_: *const std::ffi::c_void,
 }
 
 #[derive(Copy, Clone)]
@@ -5544,6 +5671,207 @@ extern "C" {
     /// Decrements the continuation task's reference count, if specified.
     pub fn PxLightCpuTask_release_mut(self_: *mut PxLightCpuTask);
 
+    /// Allocated device memory.
+    ///
+    /// A boolean indicates the operation succeed or fail
+    pub fn PxDeviceAllocatorCallback_memAlloc_mut(self_: *mut PxDeviceAllocatorCallback, ptr: *mut *mut std::ffi::c_void, size: usize) -> bool;
+
+    /// Frees device memory.
+    ///
+    /// A boolean indicates the operation succeed or fail
+    pub fn PxDeviceAllocatorCallback_memFree_mut(self_: *mut PxDeviceAllocatorCallback, ptr: *mut std::ffi::c_void) -> bool;
+
+    pub fn PxCudaContextManagerDesc_new() -> PxCudaContextManagerDesc;
+
+    /// Gets a mapped pointer from a pinned host buffer that can be used in cuda kernels directly
+    ///
+    /// Data access performance with a mapped pinned host pointer will be slower than using a device pointer directly
+    /// but the changes done in the kernel will be available on the host immediately.
+    /// The cuda context will get acquired automatically
+    pub fn PxCudaContextManager_getMappedDevicePtr_mut(self_: *mut PxCudaContextManager, pinnedHostBuffer: *mut std::ffi::c_void) -> CUdeviceptr;
+
+    /// Acquire the CUDA context for the current thread
+    ///
+    /// Acquisitions are allowed to be recursive within a single thread.
+    /// You can acquire the context multiple times so long as you release
+    /// it the same count.
+    ///
+    /// The context must be acquired before using most CUDA functions.
+    pub fn PxCudaContextManager_acquireContext_mut(self_: *mut PxCudaContextManager);
+
+    /// Release the CUDA context from the current thread
+    ///
+    /// The CUDA context should be released as soon as practically
+    /// possible, to allow other CPU threads to work efficiently.
+    pub fn PxCudaContextManager_releaseContext_mut(self_: *mut PxCudaContextManager);
+
+    /// Return the CUcontext
+    pub fn PxCudaContextManager_getContext_mut(self_: *mut PxCudaContextManager) -> *mut CUctx_st;
+
+    /// Return the CudaContext
+    pub fn PxCudaContextManager_getCudaContext_mut(self_: *mut PxCudaContextManager) -> *mut PxCudaContext;
+
+    /// Context manager has a valid CUDA context
+    ///
+    /// This method should be called after creating a PxCudaContextManager,
+    /// especially if the manager was responsible for allocating its own
+    /// CUDA context (desc.ctx == NULL).
+    pub fn PxCudaContextManager_contextIsValid(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM10(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM11(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM12(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM13(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM20(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM30(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM35(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM50(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM52(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_supportsArchSM60(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_isIntegrated(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_canMapHostMemory(self_: *const PxCudaContextManager) -> bool;
+
+    pub fn PxCudaContextManager_getDriverVersion(self_: *const PxCudaContextManager) -> i32;
+
+    pub fn PxCudaContextManager_getDeviceTotalMemBytes(self_: *const PxCudaContextManager) -> usize;
+
+    pub fn PxCudaContextManager_getMultiprocessorCount(self_: *const PxCudaContextManager) -> i32;
+
+    pub fn PxCudaContextManager_getClockRate(self_: *const PxCudaContextManager) -> u32;
+
+    pub fn PxCudaContextManager_getSharedMemPerBlock(self_: *const PxCudaContextManager) -> i32;
+
+    pub fn PxCudaContextManager_getSharedMemPerMultiprocessor(self_: *const PxCudaContextManager) -> i32;
+
+    pub fn PxCudaContextManager_getMaxThreadsPerBlock(self_: *const PxCudaContextManager) -> u32;
+
+    pub fn PxCudaContextManager_getDeviceName(self_: *const PxCudaContextManager) -> *const std::ffi::c_char;
+
+    pub fn PxCudaContextManager_getDevice(self_: *const PxCudaContextManager) -> i32;
+
+    pub fn PxCudaContextManager_getInteropMode(self_: *const PxCudaContextManager) -> PxCudaInteropMode;
+
+    pub fn PxCudaContextManager_setUsingConcurrentStreams_mut(self_: *mut PxCudaContextManager, anon_param0: bool);
+
+    pub fn PxCudaContextManager_getUsingConcurrentStreams(self_: *const PxCudaContextManager) -> bool;
+
+    /// Register a rendering resource with CUDA
+    ///
+    /// This function is called to register render resources (allocated
+    /// from OpenGL) with CUDA so that the memory may be shared
+    /// between the two systems.  This is only required for render
+    /// resources that are designed for interop use.  In APEX, each
+    /// render resource descriptor that could support interop has a
+    /// 'registerInCUDA' boolean variable.
+    ///
+    /// The function must be called again any time your graphics device
+    /// is reset, to re-register the resource.
+    ///
+    /// Returns true if the registration succeeded.  A registered
+    /// resource must be unregistered before it can be released.
+    pub fn PxCudaContextManager_registerResourceInCudaGL_mut(self_: *mut PxCudaContextManager, resource: *mut *mut CUgraphicsResource_st, buffer: u32, flags: PxCudaInteropRegisterFlags) -> bool;
+
+    /// Register a rendering resource with CUDA
+    ///
+    /// This function is called to register render resources (allocated
+    /// from Direct3D) with CUDA so that the memory may be shared
+    /// between the two systems.  This is only required for render
+    /// resources that are designed for interop use.  In APEX, each
+    /// render resource descriptor that could support interop has a
+    /// 'registerInCUDA' boolean variable.
+    ///
+    /// The function must be called again any time your graphics device
+    /// is reset, to re-register the resource.
+    ///
+    /// Returns true if the registration succeeded.  A registered
+    /// resource must be unregistered before it can be released.
+    pub fn PxCudaContextManager_registerResourceInCudaD3D_mut(self_: *mut PxCudaContextManager, resource: *mut *mut CUgraphicsResource_st, resourcePointer: *mut std::ffi::c_void, flags: PxCudaInteropRegisterFlags) -> bool;
+
+    /// Unregister a rendering resource with CUDA
+    ///
+    /// If a render resource was successfully registered with CUDA using
+    /// the registerResourceInCuda***() methods, this function must be called
+    /// to unregister the resource before the it can be released.
+    pub fn PxCudaContextManager_unregisterResourceInCuda_mut(self_: *mut PxCudaContextManager, resource: *mut CUgraphicsResource_st) -> bool;
+
+    /// Determine if the user has configured a dedicated PhysX GPU in the NV Control Panel
+    ///
+    /// If using CUDA Interop, this will always return false
+    ///
+    /// 1 if there is a dedicated GPU
+    /// 0 if there is NOT a dedicated GPU
+    /// -1 if the routine is not implemented
+    pub fn PxCudaContextManager_usingDedicatedGPU(self_: *const PxCudaContextManager) -> i32;
+
+    /// Get the cuda modules that have been loaded into this context on construction
+    ///
+    /// Pointer to the cuda modules
+    pub fn PxCudaContextManager_getCuModules_mut(self_: *mut PxCudaContextManager) -> *mut *mut CUmod_st;
+
+    /// Release the PxCudaContextManager
+    ///
+    /// If the PxCudaContextManager created the CUDA context it was
+    /// responsible for, it also frees that context.
+    ///
+    /// Do not release the PxCudaContextManager if there are any scenes
+    /// using it.  Those scenes must be released first.
+    pub fn PxCudaContextManager_release_mut(self_: *mut PxCudaContextManager);
+
+    /// ScopedCudaLock constructor
+    pub fn PxScopedCudaLock_new_alloc(ctx: *mut PxCudaContextManager) -> *mut PxScopedCudaLock;
+
+    /// ScopedCudaLock destructor
+    pub fn PxScopedCudaLock_delete(self_: *mut PxScopedCudaLock);
+
+    pub fn PxGpuLoadHook_delete(self_: *mut PxGpuLoadHook);
+
+    pub fn PxGpuLoadHook_getPhysXGpuDllName(self_: *const PxGpuLoadHook) -> *const std::ffi::c_char;
+
+    /// Sets GPU load hook instance for PhysX dll.
+    pub fn phys_PxSetPhysXGpuLoadHook(hook: *const PxGpuLoadHook);
+
+    /// Ask the NVIDIA control panel which GPU has been selected for use by
+    /// PhysX.  Returns -1 if no PhysX capable GPU is found or GPU PhysX has
+    /// been disabled.
+    pub fn phys_PxGetSuggestedCudaDeviceOrdinal(errc: *mut PxErrorCallback) -> i32;
+
+    /// Allocate a CUDA Context manager, complete with heaps.
+    /// You only need one CUDA context manager per GPU device you intend to use for
+    /// CUDA tasks.
+    pub fn phys_PxCreateCudaContextManager(foundation: *mut PxFoundation, desc: *const PxCudaContextManagerDesc, profilerCallback: *mut PxProfilerCallback) -> *mut PxCudaContextManager;
+
+    /// Sets profiler callback to PhysX GPU
+    pub fn phys_PxSetPhysXGpuProfilerCallback(profilerCallback: *mut PxProfilerCallback);
+
+    /// Internally used callback to register function names of cuda kernels
+    pub fn phys_PxCudaRegisterFunction(moduleIndex: i32, functionName: *const std::ffi::c_char);
+
+    /// Internally used callback to register cuda modules at load time
+    pub fn phys_PxCudaRegisterFatBinary(anon_param0: *mut std::ffi::c_void) -> *mut *mut std::ffi::c_void;
+
+    /// Access to the registered cuda modules
+    pub fn phys_PxGetCudaModuleTable() -> *mut *mut std::ffi::c_void;
+
+    /// Number of registered cuda modules
+    pub fn phys_PxGetCudaModuleTableSize() -> u32;
+
+    /// Access to the loaded cuda functions (kernels)
+    pub fn phys_PxGetCudaFunctionTable() -> *mut PxKernelIndex;
+
+    /// Number of loaded cuda functions (kernels)
+    pub fn phys_PxGetCudaFunctionTableSize() -> u32;
+
     /// Returns the type of the geometry.
     ///
     /// The type of the object.
@@ -5819,6 +6147,365 @@ extern "C" {
     /// A valid height field has a positive scale value in each direction (heightScale > 0, rowScale > 0, columnScale > 0).
     /// It is illegal to call PxRigidActor::createShape and PxPhysics::createShape with a height field that has zero extents in any direction.
     pub fn PxHeightFieldGeometry_isValid(self_: *const PxHeightFieldGeometry) -> bool;
+
+    /// Deletes the actor.
+    ///
+    /// Do not keep a reference to the deleted instance.
+    ///
+    /// If the actor belongs to a [`PxAggregate`] object, it is automatically removed from the aggregate.
+    pub fn PxActor_release_mut(self_: *mut PxActor);
+
+    /// Retrieves the type of actor.
+    ///
+    /// The actor type of the actor.
+    pub fn PxActor_getType(self_: *const PxActor) -> PxActorType;
+
+    /// Retrieves the scene which this actor belongs to.
+    ///
+    /// Owner Scene. NULL if not part of a scene.
+    pub fn PxActor_getScene(self_: *const PxActor) -> *mut PxScene;
+
+    /// Sets a name string for the object that can be retrieved with getName().
+    ///
+    /// This is for debugging and is not used by the SDK. The string is not copied by the SDK,
+    /// only the pointer is stored.
+    ///
+    /// Default:
+    /// NULL
+    pub fn PxActor_setName_mut(self_: *mut PxActor, name: *const std::ffi::c_char);
+
+    /// Retrieves the name string set with setName().
+    ///
+    /// Name string associated with object.
+    pub fn PxActor_getName(self_: *const PxActor) -> *const std::ffi::c_char;
+
+    /// Retrieves the axis aligned bounding box enclosing the actor.
+    ///
+    /// It is not allowed to use this method while the simulation is running (except during PxScene::collide(),
+    /// in PxContactModifyCallback or in contact report callbacks).
+    ///
+    /// The actor's bounding box.
+    pub fn PxActor_getWorldBounds(self_: *const PxActor, inflation: f32) -> PxBounds3;
+
+    /// Raises or clears a particular actor flag.
+    ///
+    /// See the list of flags [`PxActorFlag`]
+    ///
+    /// Sleeping:
+    /// Does
+    /// NOT
+    /// wake the actor up automatically.
+    pub fn PxActor_setActorFlag_mut(self_: *mut PxActor, flag: PxActorFlag, value: bool);
+
+    /// Sets the actor flags.
+    ///
+    /// See the list of flags [`PxActorFlag`]
+    pub fn PxActor_setActorFlags_mut(self_: *mut PxActor, inFlags: PxActorFlags);
+
+    /// Reads the PxActor flags.
+    ///
+    /// See the list of flags [`PxActorFlag`]
+    ///
+    /// The values of the PxActor flags.
+    pub fn PxActor_getActorFlags(self_: *const PxActor) -> PxActorFlags;
+
+    /// Assigns dynamic actors a dominance group identifier.
+    ///
+    /// PxDominanceGroup is a 5 bit group identifier (legal range from 0 to 31).
+    ///
+    /// The PxScene::setDominanceGroupPair() lets you set certain behaviors for pairs of dominance groups.
+    /// By default every dynamic actor is created in group 0.
+    ///
+    /// Default:
+    /// 0
+    ///
+    /// Sleeping:
+    /// Changing the dominance group does
+    /// NOT
+    /// wake the actor up automatically.
+    pub fn PxActor_setDominanceGroup_mut(self_: *mut PxActor, dominanceGroup: u8);
+
+    /// Retrieves the value set with setDominanceGroup().
+    ///
+    /// The dominance group of this actor.
+    pub fn PxActor_getDominanceGroup(self_: *const PxActor) -> u8;
+
+    /// Sets the owner client of an actor.
+    ///
+    /// This cannot be done once the actor has been placed into a scene.
+    ///
+    /// Default:
+    /// PX_DEFAULT_CLIENT
+    pub fn PxActor_setOwnerClient_mut(self_: *mut PxActor, inClient: u8);
+
+    /// Returns the owner client that was specified at creation time.
+    ///
+    /// This value cannot be changed once the object is placed into the scene.
+    pub fn PxActor_getOwnerClient(self_: *const PxActor) -> u8;
+
+    /// Retrieves the aggregate the actor might be a part of.
+    ///
+    /// The aggregate the actor is a part of, or NULL if the actor does not belong to an aggregate.
+    pub fn PxActor_getAggregate(self_: *const PxActor) -> *mut PxAggregate;
+
+    pub fn PxFilterData_new(anon_param0: PxEMPTY) -> PxFilterData;
+
+    /// Default constructor.
+    pub fn PxFilterData_new_1() -> PxFilterData;
+
+    /// Constructor to set filter data initially.
+    pub fn PxFilterData_new_2(w0: u32, w1: u32, w2: u32, w3: u32) -> PxFilterData;
+
+    /// (re)sets the structure to the default.
+    pub fn PxFilterData_setToDefault_mut(self_: *mut PxFilterData);
+
+    /// Extract filter object type from the filter attributes of a collision pair object
+    ///
+    /// The type of the collision pair object.
+    pub fn phys_PxGetFilterObjectType(attr: u32) -> PxFilterObjectType;
+
+    /// Specifies whether the collision object belongs to a kinematic rigid body
+    ///
+    /// True if the object belongs to a kinematic rigid body, else false
+    pub fn phys_PxFilterObjectIsKinematic(attr: u32) -> bool;
+
+    /// Specifies whether the collision object is a trigger shape
+    ///
+    /// True if the object is a trigger shape, else false
+    pub fn phys_PxFilterObjectIsTrigger(attr: u32) -> bool;
+
+    /// Filter method to specify how a pair of potentially colliding objects should be processed.
+    ///
+    /// This method gets called when the filter flags returned by the filter shader (see [`PxSimulationFilterShader`])
+    /// indicate that the filter callback should be invoked ([`PxFilterFlag::eCALLBACK`] or #PxFilterFlag::eNOTIFY set).
+    /// Return the PxFilterFlag flags and set the PxPairFlag flags to define what the simulation should do with the given
+    /// collision pair.
+    ///
+    /// Filter flags defining whether the pair should be discarded, temporarily ignored or processed and whether the pair
+    /// should be tracked and send a report on pair deletion through the filter callback
+    pub fn PxSimulationFilterCallback_pairFound_mut(self_: *mut PxSimulationFilterCallback, pairID: u32, attributes0: u32, filterData0: PxFilterData, a0: *const PxActor, s0: *const PxShape, attributes1: u32, filterData1: PxFilterData, a1: *const PxActor, s1: *const PxShape, pairFlags: *mut PxPairFlags) -> PxFilterFlags;
+
+    /// Callback to inform that a tracked collision pair is gone.
+    ///
+    /// This method gets called when a collision pair disappears or gets re-filtered. Only applies to
+    /// collision pairs which have been marked as filter callback pairs ([`PxFilterFlag::eNOTIFY`] set in #pairFound()).
+    pub fn PxSimulationFilterCallback_pairLost_mut(self_: *mut PxSimulationFilterCallback, pairID: u32, attributes0: u32, filterData0: PxFilterData, attributes1: u32, filterData1: PxFilterData, objectRemoved: bool);
+
+    /// Callback to give the opportunity to change the filter state of a tracked collision pair.
+    ///
+    /// This method gets called once per simulation step to let the application change the filter and pair
+    /// flags of a collision pair that has been reported in [`pairFound`]() and requested callbacks by
+    /// setting [`PxFilterFlag::eNOTIFY`]. To request a change of filter status, the target pair has to be
+    /// specified by its ID, the new filter and pair flags have to be provided and the method should return true.
+    ///
+    /// If this method changes the filter status of a collision pair and the pair should keep being tracked
+    /// by the filter callbacks then [`PxFilterFlag::eNOTIFY`] has to be set.
+    ///
+    /// The application is responsible to ensure that this method does not get called for pairs that have been
+    /// reported as lost, see [`pairLost`]().
+    ///
+    /// True if the changes should be applied. In this case the method will get called again. False if
+    /// no more status changes should be done in the current simulation step. In that case the provided flags will be discarded.
+    pub fn PxSimulationFilterCallback_statusChange_mut(self_: *mut PxSimulationFilterCallback, pairID: *mut u32, pairFlags: *mut PxPairFlags, filterFlags: *mut PxFilterFlags) -> bool;
+
+    /// Destructor
+    pub fn PxParticleSystemCallback_delete(self_: *mut PxParticleSystemCallback);
+
+    /// Sets the solver iteration counts for the body.
+    ///
+    /// The solver iteration count determines how accurately joints and contacts are resolved.
+    /// If you are having trouble with jointed bodies oscillating and behaving erratically, then
+    /// setting a higher position iteration count may improve their stability.
+    ///
+    /// If intersecting bodies are being depenetrated too violently, increase the number of velocity
+    /// iterations. More velocity iterations will drive the relative exit velocity of the intersecting
+    /// objects closer to the correct value given the restitution.
+    ///
+    /// Default:
+    /// 4 position iterations, 1 velocity iteration
+    ///
+    /// See [`getSolverIterationCounts`]()
+    pub fn PxParticleSystem_setSolverIterationCounts_mut(self_: *mut PxParticleSystem, minPositionIters: u32, minVelocityIters: u32);
+
+    /// Retrieves the solver iteration counts.
+    ///
+    /// See [`setSolverIterationCounts`]()
+    pub fn PxParticleSystem_getSolverIterationCounts(self_: *const PxParticleSystem, minPositionIters: *mut u32, minVelocityIters: *mut u32);
+
+    /// Retrieves the collision filter settings.
+    ///
+    /// The filter data
+    pub fn PxParticleSystem_getSimulationFilterData(self_: *const PxParticleSystem) -> PxFilterData;
+
+    /// Set collision filter settings
+    ///
+    /// Allows to control with which objects the particle system collides
+    pub fn PxParticleSystem_setSimulationFilterData_mut(self_: *mut PxParticleSystem, data: *const PxFilterData);
+
+    /// Set particle flag
+    ///
+    /// Allows to control self collision etc.
+    pub fn PxParticleSystem_setParticleFlag_mut(self_: *mut PxParticleSystem, flag: PxParticleFlag, val: bool);
+
+    /// Set particle flags
+    ///
+    /// Allows to control self collision etc.
+    pub fn PxParticleSystem_setParticleFlags_mut(self_: *mut PxParticleSystem, flags: PxParticleFlags);
+
+    /// Retrieves the particle flags.
+    ///
+    /// The particle flags
+    pub fn PxParticleSystem_getParticleFlags(self_: *const PxParticleSystem) -> PxParticleFlags;
+
+    /// Set the maximal depenetration velocity particles can reach
+    ///
+    /// Allows to limit the particles' maximal depenetration velocity to avoid that collision responses lead to very high particle velocities
+    pub fn PxParticleSystem_setMaxDepenetrationVelocity_mut(self_: *mut PxParticleSystem, maxDepenetrationVelocity: f32);
+
+    /// Retrieves maximal depenetration velocity a particle can have.
+    ///
+    /// The maximal depenetration velocity
+    pub fn PxParticleSystem_getMaxDepenetrationVelocity_mut(self_: *mut PxParticleSystem) -> f32;
+
+    /// Set the maximal velocity particles can reach
+    ///
+    /// Allows to limit the particles' maximal velocity to control the maximal distance a particle can move per frame
+    pub fn PxParticleSystem_setMaxVelocity_mut(self_: *mut PxParticleSystem, maxVelocity: f32);
+
+    /// Retrieves maximal velocity a particle can have.
+    ///
+    /// The maximal velocity
+    pub fn PxParticleSystem_getMaxVelocity_mut(self_: *mut PxParticleSystem) -> f32;
+
+    /// Return the cuda context manager
+    ///
+    /// The cuda context manager
+    pub fn PxParticleSystem_getCudaContextManager(self_: *const PxParticleSystem) -> *mut PxCudaContextManager;
+
+    /// Set the rest offset for the collision between particles and rigids or soft bodies.
+    ///
+    /// A particle and a rigid or soft body will come to rest at a distance equal to the sum of their restOffset values.
+    pub fn PxParticleSystem_setRestOffset_mut(self_: *mut PxParticleSystem, restOffset: f32);
+
+    /// Return the rest offset
+    ///
+    /// the rest offset
+    ///
+    /// See [`setRestOffset`]()
+    pub fn PxParticleSystem_getRestOffset(self_: *const PxParticleSystem) -> f32;
+
+    /// Set the contact offset for the collision between particles and rigids or soft bodies
+    ///
+    /// The contact offset needs to be larger than the rest offset.
+    /// Contact constraints are generated for a particle and a rigid or softbody below the distance equal to the sum of their contacOffset values.
+    pub fn PxParticleSystem_setContactOffset_mut(self_: *mut PxParticleSystem, contactOffset: f32);
+
+    /// Return the contact offset
+    ///
+    /// the contact offset
+    ///
+    /// See [`setContactOffset`]()
+    pub fn PxParticleSystem_getContactOffset(self_: *const PxParticleSystem) -> f32;
+
+    /// Set the contact offset for the interactions between particles
+    ///
+    /// The particle contact offset needs to be larger than the fluid rest offset and larger than the solid rest offset.
+    /// Interactions for two particles are computed if their distance is below twice the particleContactOffset value.
+    pub fn PxParticleSystem_setParticleContactOffset_mut(self_: *mut PxParticleSystem, particleContactOffset: f32);
+
+    /// Return the particle contact offset
+    ///
+    /// the particle contact offset
+    ///
+    /// See [`setParticleContactOffset`]()
+    pub fn PxParticleSystem_getParticleContactOffset(self_: *const PxParticleSystem) -> f32;
+
+    /// Set the solid rest offset
+    ///
+    /// Two solid particles (or a solid and a fluid particle) will come to rest at a distance equal to twice the solidRestOffset value.
+    pub fn PxParticleSystem_setSolidRestOffset_mut(self_: *mut PxParticleSystem, solidRestOffset: f32);
+
+    /// Return the solid rest offset
+    ///
+    /// the solid rest offset
+    ///
+    /// See [`setSolidRestOffset`]()
+    pub fn PxParticleSystem_getSolidRestOffset(self_: *const PxParticleSystem) -> f32;
+
+    /// Creates a rigid attachment between a particle and a rigid actor.
+    ///
+    /// This method creates a symbolic attachment between the particle system and a rigid body for the purpose of island management.
+    /// The actual attachments will be contained in the particle buffers.
+    ///
+    /// Be aware that destroying the rigid body before destroying the attachment is illegal and may cause a crash.
+    /// The particle system keeps track of these attachments but the rigid body does not.
+    pub fn PxParticleSystem_addRigidAttachment_mut(self_: *mut PxParticleSystem, actor: *mut PxRigidActor);
+
+    /// Removes a rigid attachment between a particle and a rigid body.
+    ///
+    /// This method destroys a symbolic attachment between the particle system and a rigid body for the purpose of island management.
+    ///
+    /// Be aware that destroying the rigid body before destroying the attachment is illegal and may cause a crash.
+    /// The particle system keeps track of these attachments but the rigid body does not.
+    pub fn PxParticleSystem_removeRigidAttachment_mut(self_: *mut PxParticleSystem, actor: *mut PxRigidActor);
+
+    /// Enable continuous collision detection for particles
+    pub fn PxParticleSystem_enableCCD_mut(self_: *mut PxParticleSystem, enable: bool);
+
+    /// Creates combined particle flag with particle material and particle phase flags.
+    ///
+    /// The combined particle group index and phase flags.
+    ///
+    /// See [`PxParticlePhaseFlag`]
+    pub fn PxParticleSystem_createPhase_mut(self_: *mut PxParticleSystem, material: *mut PxParticleMaterial, flags: PxParticlePhaseFlags) -> u32;
+
+    /// Returns number of particle materials
+    ///
+    /// The number of particle materials
+    pub fn PxParticleSystem_getNbParticleMaterials(self_: *const PxParticleSystem) -> u32;
+
+    /// Sets a user notify object which receives special simulation events when they occur.
+    ///
+    /// Do not set the callback while the simulation is running. Calls to this method while the simulation is running will be ignored.
+    ///
+    /// A call to fetchResultsParticleSystem() on the PxScene will synchronize the work such that the caller knows that all worke done in the callback completed.
+    ///
+    /// See [`PxParticleSystemCallback`], #getParticleSystemCallback()
+    pub fn PxParticleSystem_setParticleSystemCallback_mut(self_: *mut PxParticleSystem, callback: *mut PxParticleSystemCallback);
+
+    /// Retrieves the simulationEventCallback pointer set with setSimulationEventCallback().
+    ///
+    /// The current user notify pointer. See PxSimulationEventCallback.
+    ///
+    /// See [`PxParticleSystemCallback`], #setParticleSystemCallback()
+    pub fn PxParticleSystem_getParticleSystemCallback(self_: *const PxParticleSystem) -> *mut PxParticleSystemCallback;
+
+    /// Sets periodic boundary wrap value
+    ///
+    /// See [`getPeriodicBoundary`]()
+    pub fn PxParticleSystem_setPeriodicBoundary_mut(self_: *mut PxParticleSystem, boundary: *const PxVec3);
+
+    /// Gets periodic boundary wrap value
+    ///
+    /// boundary The periodic boundary wrap value
+    ///
+    /// See [`setPeriodicBoundary`]()
+    pub fn PxParticleSystem_getPeriodicBoundary(self_: *const PxParticleSystem) -> PxVec3;
+
+    /// Add an existing particle buffer to the particle system.
+    ///
+    /// See [`PxParticleBuffer`].
+    pub fn PxParticleSystem_addParticleBuffer_mut(self_: *mut PxParticleSystem, particleBuffer: *mut PxParticleBuffer);
+
+    /// Remove particle buffer from the particle system.
+    ///
+    /// See [`PxParticleBuffer`].
+    pub fn PxParticleSystem_removeParticleBuffer_mut(self_: *mut PxParticleSystem, particleBuffer: *mut PxParticleBuffer);
+
+    /// Returns the GPU particle system index.
+    ///
+    /// The GPU index, if the particle system is in a scene and PxSceneFlag::eSUPPRESS_READBACK is set, or 0xFFFFFFFF otherwise.
+    pub fn PxParticleSystem_getGpuParticleSystemIndex_mut(self_: *mut PxParticleSystem) -> u32;
 
     /// Default constructor.
     ///
@@ -6516,106 +7203,6 @@ extern "C" {
 
     pub fn PxSimulationTetrahedronMeshData_release_mut(self_: *mut PxSimulationTetrahedronMeshData);
 
-    /// Deletes the actor.
-    ///
-    /// Do not keep a reference to the deleted instance.
-    ///
-    /// If the actor belongs to a [`PxAggregate`] object, it is automatically removed from the aggregate.
-    pub fn PxActor_release_mut(self_: *mut PxActor);
-
-    /// Retrieves the type of actor.
-    ///
-    /// The actor type of the actor.
-    pub fn PxActor_getType(self_: *const PxActor) -> PxActorType;
-
-    /// Retrieves the scene which this actor belongs to.
-    ///
-    /// Owner Scene. NULL if not part of a scene.
-    pub fn PxActor_getScene(self_: *const PxActor) -> *mut PxScene;
-
-    /// Sets a name string for the object that can be retrieved with getName().
-    ///
-    /// This is for debugging and is not used by the SDK. The string is not copied by the SDK,
-    /// only the pointer is stored.
-    ///
-    /// Default:
-    /// NULL
-    pub fn PxActor_setName_mut(self_: *mut PxActor, name: *const std::ffi::c_char);
-
-    /// Retrieves the name string set with setName().
-    ///
-    /// Name string associated with object.
-    pub fn PxActor_getName(self_: *const PxActor) -> *const std::ffi::c_char;
-
-    /// Retrieves the axis aligned bounding box enclosing the actor.
-    ///
-    /// It is not allowed to use this method while the simulation is running (except during PxScene::collide(),
-    /// in PxContactModifyCallback or in contact report callbacks).
-    ///
-    /// The actor's bounding box.
-    pub fn PxActor_getWorldBounds(self_: *const PxActor, inflation: f32) -> PxBounds3;
-
-    /// Raises or clears a particular actor flag.
-    ///
-    /// See the list of flags [`PxActorFlag`]
-    ///
-    /// Sleeping:
-    /// Does
-    /// NOT
-    /// wake the actor up automatically.
-    pub fn PxActor_setActorFlag_mut(self_: *mut PxActor, flag: PxActorFlag, value: bool);
-
-    /// Sets the actor flags.
-    ///
-    /// See the list of flags [`PxActorFlag`]
-    pub fn PxActor_setActorFlags_mut(self_: *mut PxActor, inFlags: PxActorFlags);
-
-    /// Reads the PxActor flags.
-    ///
-    /// See the list of flags [`PxActorFlag`]
-    ///
-    /// The values of the PxActor flags.
-    pub fn PxActor_getActorFlags(self_: *const PxActor) -> PxActorFlags;
-
-    /// Assigns dynamic actors a dominance group identifier.
-    ///
-    /// PxDominanceGroup is a 5 bit group identifier (legal range from 0 to 31).
-    ///
-    /// The PxScene::setDominanceGroupPair() lets you set certain behaviors for pairs of dominance groups.
-    /// By default every dynamic actor is created in group 0.
-    ///
-    /// Default:
-    /// 0
-    ///
-    /// Sleeping:
-    /// Changing the dominance group does
-    /// NOT
-    /// wake the actor up automatically.
-    pub fn PxActor_setDominanceGroup_mut(self_: *mut PxActor, dominanceGroup: u8);
-
-    /// Retrieves the value set with setDominanceGroup().
-    ///
-    /// The dominance group of this actor.
-    pub fn PxActor_getDominanceGroup(self_: *const PxActor) -> u8;
-
-    /// Sets the owner client of an actor.
-    ///
-    /// This cannot be done once the actor has been placed into a scene.
-    ///
-    /// Default:
-    /// PX_DEFAULT_CLIENT
-    pub fn PxActor_setOwnerClient_mut(self_: *mut PxActor, inClient: u8);
-
-    /// Returns the owner client that was specified at creation time.
-    ///
-    /// This value cannot be changed once the object is placed into the scene.
-    pub fn PxActor_getOwnerClient(self_: *const PxActor) -> u8;
-
-    /// Retrieves the aggregate the actor might be a part of.
-    ///
-    /// The aggregate the actor is a part of, or NULL if the actor does not belong to an aggregate.
-    pub fn PxActor_getAggregate(self_: *const PxActor) -> *mut PxAggregate;
-
     pub fn phys_PxGetAggregateFilterHint(type_: PxAggregateType, enableSelfCollision: bool) -> u32;
 
     pub fn phys_PxGetAggregateSelfCollisionBit(hint: u32) -> u32;
@@ -6679,6 +7266,14 @@ extern "C" {
     ///
     /// Number of actors contained in the aggregate.
     pub fn PxAggregate_getNbActors(self_: *const PxAggregate) -> u32;
+
+    /// Retrieves max amount of actors that can be contained in the aggregate.
+    ///
+    /// PxAggregate now supports an arbitrary number of actors. This method return PX_MAX_U32 and will be
+    /// removed in a future release.
+    ///
+    /// Max actor size.
+    pub fn PxAggregate_getMaxNbActors(self_: *const PxAggregate) -> u32;
 
     /// Retrieves max amount of shapes that can be contained in the aggregate.
     ///
@@ -7751,6 +8346,22 @@ extern "C" {
     ///
     /// This call is not allowed while the simulation is running.
     ///
+    /// Use [`setLimitParams`] instead. Deprecated since PhysX version 5.1.
+    pub fn PxArticulationJointReducedCoordinate_setLimit_mut(self_: *mut PxArticulationJointReducedCoordinate, axis: PxArticulationAxis, lowLimit: f32, highLimit: f32);
+
+    /// Returns the joint limits for a given axis.
+    ///
+    /// Use [`getLimitParams`] instead. Deprecated since PhysX version 5.1.
+    pub fn PxArticulationJointReducedCoordinate_getLimit(self_: *const PxArticulationJointReducedCoordinate, axis: PxArticulationAxis, lowLimit: *mut f32, highLimit: *mut f32);
+
+    /// Sets the joint limits for a given axis.
+    ///
+    /// - The motion of the corresponding axis should be set to PxArticulationMotion::eLIMITED in order for the limits to be enforced.
+    /// - The lower limit should be strictly smaller than the higher limit. If the limits should be equal, use PxArticulationMotion::eLOCKED
+    /// and an appropriate offset in the parent/child joint frames.
+    ///
+    /// This call is not allowed while the simulation is running.
+    ///
     /// For spherical joints, limit.min and limit.max must both be in range [-Pi, Pi].
     pub fn PxArticulationJointReducedCoordinate_setLimitParams_mut(self_: *mut PxArticulationJointReducedCoordinate, axis: PxArticulationAxis, limit: *const PxArticulationLimit);
 
@@ -7758,6 +8369,20 @@ extern "C" {
     ///
     /// The joint limits.
     pub fn PxArticulationJointReducedCoordinate_getLimitParams(self_: *const PxArticulationJointReducedCoordinate, axis: PxArticulationAxis) -> PxArticulationLimit;
+
+    /// Configures a joint drive for the given axis.
+    ///
+    /// See PxArticulationDrive for parameter details; and the manual for further information, and the drives' implicit spring-damper (i.e. PD control) implementation in particular.
+    ///
+    /// This call is not allowed while the simulation is running.
+    ///
+    /// Use [`setDriveParams`] instead. Deprecated since PhysX version 5.1.
+    pub fn PxArticulationJointReducedCoordinate_setDrive_mut(self_: *mut PxArticulationJointReducedCoordinate, axis: PxArticulationAxis, stiffness: f32, damping: f32, maxForce: f32, driveType: PxArticulationDriveType);
+
+    /// Gets the joint drive configuration for the given axis.
+    ///
+    /// Use [`getDriveParams`] instead. Deprecated since PhysX version 5.1.
+    pub fn PxArticulationJointReducedCoordinate_getDrive(self_: *const PxArticulationJointReducedCoordinate, axis: PxArticulationAxis, stiffness: *mut f32, damping: *mut f32, maxForce: *mut f32, driveType: *mut PxArticulationDriveType);
 
     /// Configures a joint drive for the given axis.
     ///
@@ -9127,65 +9752,23 @@ extern "C" {
     /// The dynamic friction value
     pub fn PxFEMMaterial_getDynamicFriction(self_: *const PxFEMMaterial) -> f32;
 
-    pub fn PxFilterData_new(anon_param0: PxEMPTY) -> PxFilterData;
+    /// Sets material velocity damping term
+    pub fn PxFEMSoftBodyMaterial_setDamping_mut(self_: *mut PxFEMSoftBodyMaterial, damping: f32);
 
-    /// Default constructor.
-    pub fn PxFilterData_new_1() -> PxFilterData;
+    /// Retrieves velocity damping
+    ///
+    /// The velocity damping.
+    pub fn PxFEMSoftBodyMaterial_getDamping(self_: *const PxFEMSoftBodyMaterial) -> f32;
 
-    /// Constructor to set filter data initially.
-    pub fn PxFilterData_new_2(w0: u32, w1: u32, w2: u32, w3: u32) -> PxFilterData;
+    /// Sets material damping scale. A scale of 1 corresponds to default damping, a value of 0 will only apply damping to certain motions leading to special effects that look similar to water filled softbodies.
+    pub fn PxFEMSoftBodyMaterial_setDampingScale_mut(self_: *mut PxFEMSoftBodyMaterial, scale: f32);
 
-    /// (re)sets the structure to the default.
-    pub fn PxFilterData_setToDefault_mut(self_: *mut PxFilterData);
+    /// Retrieves material damping scale.
+    ///
+    /// The damping scale term.
+    pub fn PxFEMSoftBodyMaterial_getDampingScale(self_: *const PxFEMSoftBodyMaterial) -> f32;
 
-    /// Extract filter object type from the filter attributes of a collision pair object
-    ///
-    /// The type of the collision pair object.
-    pub fn phys_PxGetFilterObjectType(attr: u32) -> PxFilterObjectType;
-
-    /// Specifies whether the collision object belongs to a kinematic rigid body
-    ///
-    /// True if the object belongs to a kinematic rigid body, else false
-    pub fn phys_PxFilterObjectIsKinematic(attr: u32) -> bool;
-
-    /// Specifies whether the collision object is a trigger shape
-    ///
-    /// True if the object is a trigger shape, else false
-    pub fn phys_PxFilterObjectIsTrigger(attr: u32) -> bool;
-
-    /// Filter method to specify how a pair of potentially colliding objects should be processed.
-    ///
-    /// This method gets called when the filter flags returned by the filter shader (see [`PxSimulationFilterShader`])
-    /// indicate that the filter callback should be invoked ([`PxFilterFlag::eCALLBACK`] or #PxFilterFlag::eNOTIFY set).
-    /// Return the PxFilterFlag flags and set the PxPairFlag flags to define what the simulation should do with the given
-    /// collision pair.
-    ///
-    /// Filter flags defining whether the pair should be discarded, temporarily ignored or processed and whether the pair
-    /// should be tracked and send a report on pair deletion through the filter callback
-    pub fn PxSimulationFilterCallback_pairFound_mut(self_: *mut PxSimulationFilterCallback, pairID: u32, attributes0: u32, filterData0: PxFilterData, a0: *const PxActor, s0: *const PxShape, attributes1: u32, filterData1: PxFilterData, a1: *const PxActor, s1: *const PxShape, pairFlags: *mut PxPairFlags) -> PxFilterFlags;
-
-    /// Callback to inform that a tracked collision pair is gone.
-    ///
-    /// This method gets called when a collision pair disappears or gets re-filtered. Only applies to
-    /// collision pairs which have been marked as filter callback pairs ([`PxFilterFlag::eNOTIFY`] set in #pairFound()).
-    pub fn PxSimulationFilterCallback_pairLost_mut(self_: *mut PxSimulationFilterCallback, pairID: u32, attributes0: u32, filterData0: PxFilterData, attributes1: u32, filterData1: PxFilterData, objectRemoved: bool);
-
-    /// Callback to give the opportunity to change the filter state of a tracked collision pair.
-    ///
-    /// This method gets called once per simulation step to let the application change the filter and pair
-    /// flags of a collision pair that has been reported in [`pairFound`]() and requested callbacks by
-    /// setting [`PxFilterFlag::eNOTIFY`]. To request a change of filter status, the target pair has to be
-    /// specified by its ID, the new filter and pair flags have to be provided and the method should return true.
-    ///
-    /// If this method changes the filter status of a collision pair and the pair should keep being tracked
-    /// by the filter callbacks then [`PxFilterFlag::eNOTIFY`] has to be set.
-    ///
-    /// The application is responsible to ensure that this method does not get called for pairs that have been
-    /// reported as lost, see [`pairLost`]().
-    ///
-    /// True if the changes should be applied. In this case the method will get called again. False if
-    /// no more status changes should be done in the current simulation step. In that case the provided flags will be discarded.
-    pub fn PxSimulationFilterCallback_statusChange_mut(self_: *mut PxSimulationFilterCallback, pairID: *mut u32, pairFlags: *mut PxPairFlags, filterFlags: *mut PxFilterFlags) -> bool;
+    pub fn PxFEMSoftBodyMaterial_getConcreteTypeName(self_: *const PxFEMSoftBodyMaterial) -> *const std::ffi::c_char;
 
     /// Any combination of PxDataAccessFlag::eREADABLE and PxDataAccessFlag::eWRITABLE
     pub fn PxLockedData_getDataAccessFlags_mut(self_: *mut PxLockedData) -> PxDataAccessFlags;
@@ -9339,11 +9922,274 @@ extern "C" {
 
     pub fn PxMaterial_getConcreteTypeName(self_: *const PxMaterial) -> *const std::ffi::c_char;
 
+    /// Get positions and inverse masses for this particle buffer.
+    ///
+    /// A pointer to a device buffer containing the positions and inverse mass packed as PxVec4(pos.x, pos.y, pos.z, inverseMass).
+    pub fn PxParticleBuffer_getPositionInvMasses(self_: *const PxParticleBuffer) -> *mut PxVec4;
+
+    /// Get velocities for this particle buffer.
+    ///
+    /// A pointer to a device buffer containing the velocities packed as PxVec4(vel.x, vel.y, vel.z, 0.0f).
+    pub fn PxParticleBuffer_getVelocities(self_: *const PxParticleBuffer) -> *mut PxVec4;
+
+    /// Get phases for this particle buffer.
+    ///
+    /// See [`PxParticlePhase`]
+    ///
+    /// A pointer to a device buffer containing the per-particle phases for this particle buffer.
+    pub fn PxParticleBuffer_getPhases(self_: *const PxParticleBuffer) -> *mut u32;
+
+    /// Get particle volumes for this particle buffer.
+    ///
+    /// See [`PxParticleVolume`]
+    ///
+    /// A pointer to a device buffer containing the [`PxParticleVolume`] s for this particle buffer.
+    pub fn PxParticleBuffer_getParticleVolumes(self_: *const PxParticleBuffer) -> *mut PxParticleVolume;
+
+    /// Set the number of active particles for this particle buffer.
+    ///
+    /// The number of active particles can be
+    /// <
+    /// = PxParticleBuffer::getMaxParticles(). The particle system will simulate the first
+    /// x particles in the [`PxParticleBuffer`], where x is the number of active particles.
+    pub fn PxParticleBuffer_setNbActiveParticles_mut(self_: *mut PxParticleBuffer, nbActiveParticles: u32);
+
+    /// Get the number of active particles for this particle buffer.
+    ///
+    /// The number of active particles.
+    pub fn PxParticleBuffer_getNbActiveParticles(self_: *const PxParticleBuffer) -> u32;
+
+    /// Get the maximum number particles this particle buffer can hold.
+    ///
+    /// The maximum number of particles is specified when creating a [`PxParticleBuffer`]. See #PxPhysics::createParticleBuffer.
+    ///
+    /// The maximum number of particles.
+    pub fn PxParticleBuffer_getMaxParticles(self_: *const PxParticleBuffer) -> u32;
+
+    /// Get the number of particle volumes in this particle buffer.
+    ///
+    /// The number of [`PxParticleVolume`] s for this particle buffer.
+    pub fn PxParticleBuffer_getNbParticleVolumes(self_: *const PxParticleBuffer) -> u32;
+
+    /// Set the number of [`PxParticleVolume`] s for this particle buffer.
+    pub fn PxParticleBuffer_setNbParticleVolumes_mut(self_: *mut PxParticleBuffer, nbParticleVolumes: u32);
+
+    /// Get the maximum number of particle volumes this particle buffer can hold.
+    ///
+    /// See [`PxParticleVolume`].
+    ///
+    /// The maximum number of particle volumes this particle buffer can hold.
+    pub fn PxParticleBuffer_getMaxParticleVolumes(self_: *const PxParticleBuffer) -> u32;
+
+    /// Set the [`PxParticleRigidFilterPair`] s for collision filtering of particles in this buffer with rigid bodies.
+    ///
+    /// See [`PxParticleRigidFilterPair`]
+    pub fn PxParticleBuffer_setRigidFilters_mut(self_: *mut PxParticleBuffer, filters: *mut PxParticleRigidFilterPair, nbFilters: u32);
+
+    /// Set the particle-rigid body attachments for particles in this particle buffer.
+    ///
+    /// See [`PxParticleRigidAttachment`]
+    pub fn PxParticleBuffer_setRigidAttachments_mut(self_: *mut PxParticleBuffer, attachments: *mut PxParticleRigidAttachment, nbAttachments: u32);
+
+    /// Get the start index for the first particle of this particle buffer in the complete list of
+    /// particles of the particle system this buffer is used in.
+    ///
+    /// The return value is only correct if the particle buffer is assigned to a particle system and at least
+    /// one call to simulate() has been performed.
+    ///
+    /// The index of the first particle in the complete particle list.
+    pub fn PxParticleBuffer_getFlatListStartIndex(self_: *const PxParticleBuffer) -> u32;
+
+    /// Raise dirty flags on this particle buffer to communicate that the corresponding data has been updated
+    /// by the user.
+    ///
+    /// See [`PxParticleBufferFlag`].
+    pub fn PxParticleBuffer_raiseFlags_mut(self_: *mut PxParticleBuffer, flags: PxParticleBufferFlag);
+
+    /// Release this buffer and deallocate all the memory.
+    pub fn PxParticleBuffer_release_mut(self_: *mut PxParticleBuffer);
+
+    /// Cleanup helper used in case a particle system is released before the particle buffers have been removed.
+    pub fn PxParticleBuffer_onParticleSystemDestroy_mut(self_: *mut PxParticleBuffer);
+
+    /// Reserved for internal use.
+    pub fn PxParticleBuffer_setInternalData_mut(self_: *mut PxParticleBuffer, data: *mut std::ffi::c_void);
+
     /// Construct parameters with default values.
     pub fn PxDiffuseParticleParams_new() -> PxDiffuseParticleParams;
 
     /// (re)sets the structure to the default.
     pub fn PxDiffuseParticleParams_setToDefault_mut(self_: *mut PxDiffuseParticleParams);
+
+    /// Get a device buffer of positions and remaining lifetimes for the diffuse particles.
+    ///
+    /// A device buffer containing positions and lifetimes of diffuse particles packed as PxVec4(pos.x, pos.y, pos.z, lifetime).
+    pub fn PxParticleAndDiffuseBuffer_getDiffusePositionLifeTime(self_: *const PxParticleAndDiffuseBuffer) -> *mut PxVec4;
+
+    /// Get number of currently active diffuse particles.
+    ///
+    /// The number of currently active diffuse particles.
+    pub fn PxParticleAndDiffuseBuffer_getNbActiveDiffuseParticles(self_: *const PxParticleAndDiffuseBuffer) -> u32;
+
+    /// Set the maximum possible number of diffuse particles for this buffer.
+    ///
+    /// Must be in the range [0, PxParticleAndDiffuseBuffer::getMaxDiffuseParticles()]
+    pub fn PxParticleAndDiffuseBuffer_setMaxActiveDiffuseParticles_mut(self_: *mut PxParticleAndDiffuseBuffer, maxActiveDiffuseParticles: u32);
+
+    /// Get maximum possible number of diffuse particles.
+    ///
+    /// The maximum possible number diffuse particles.
+    pub fn PxParticleAndDiffuseBuffer_getMaxDiffuseParticles(self_: *const PxParticleAndDiffuseBuffer) -> u32;
+
+    /// Set the parameters for diffuse particle simulation.
+    ///
+    /// See [`PxDiffuseParticleParams`]
+    pub fn PxParticleAndDiffuseBuffer_setDiffuseParticleParams_mut(self_: *mut PxParticleAndDiffuseBuffer, params: *const PxDiffuseParticleParams);
+
+    /// Get the parameters currently used for diffuse particle simulation.
+    ///
+    /// A PxDiffuseParticleParams structure.
+    pub fn PxParticleAndDiffuseBuffer_getDiffuseParticleParams(self_: *const PxParticleAndDiffuseBuffer) -> PxDiffuseParticleParams;
+
+    pub fn PxParticleClothDesc_new() -> PxParticleClothDesc;
+
+    pub fn PxPartitionedParticleCloth_new_alloc() -> *mut PxPartitionedParticleCloth;
+
+    pub fn PxPartitionedParticleCloth_delete(self_: *mut PxPartitionedParticleCloth);
+
+    /// allocate all the buffers for this [`PxPartitionedParticleCloth`].
+    pub fn PxPartitionedParticleCloth_allocateBuffers_mut(self_: *mut PxPartitionedParticleCloth, nbParticles: u32, cudaManager: *mut PxCudaContextManager);
+
+    /// Get rest positions for this particle buffer.
+    ///
+    /// A pointer to a device buffer containing the rest positions packed as PxVec4(pos.x, pos.y, pos.z, 0.0f).
+    pub fn PxParticleClothBuffer_getRestPositions_mut(self_: *mut PxParticleClothBuffer) -> *mut PxVec4;
+
+    /// Get the triangle indices for this particle buffer.
+    ///
+    /// A pointer to a device buffer containing the triangle indices for this cloth buffer.
+    pub fn PxParticleClothBuffer_getTriangles(self_: *const PxParticleClothBuffer) -> *mut u32;
+
+    /// Set the number of triangles for this particle buffer.
+    pub fn PxParticleClothBuffer_setNbTriangles_mut(self_: *mut PxParticleClothBuffer, nbTriangles: u32);
+
+    /// Get the number of triangles for this particle buffer.
+    ///
+    /// The number triangles for this cloth buffer.
+    pub fn PxParticleClothBuffer_getNbTriangles(self_: *const PxParticleClothBuffer) -> u32;
+
+    /// Get the number of springs in this particle buffer.
+    ///
+    /// The number of springs in this cloth buffer.
+    pub fn PxParticleClothBuffer_getNbSprings(self_: *const PxParticleClothBuffer) -> u32;
+
+    /// Get the springs for this particle buffer.
+    ///
+    /// A pointer to a device buffer containing the springs for this cloth buffer.
+    pub fn PxParticleClothBuffer_getSprings_mut(self_: *mut PxParticleClothBuffer) -> *mut PxParticleSpring;
+
+    /// Set cloths for this particle buffer.
+    ///
+    /// See [`PxPartitionedParticleCloth`], #PxParticleClothPreProcessor
+    pub fn PxParticleClothBuffer_setCloths_mut(self_: *mut PxParticleClothBuffer, cloths: *mut PxPartitionedParticleCloth);
+
+    /// Get the particle indices of the first particle for each shape matched rigid body.
+    ///
+    /// A device buffer containing the list of particle start indices of each shape matched rigid body.
+    pub fn PxParticleRigidBuffer_getRigidOffsets(self_: *const PxParticleRigidBuffer) -> *mut u32;
+
+    /// Get the stiffness coefficients for all shape matched rigid bodies in this buffer.
+    ///
+    /// Stiffness must be in the range [0, 1].
+    ///
+    /// A device buffer containing the list of stiffness coefficients for each rigid body.
+    pub fn PxParticleRigidBuffer_getRigidCoefficients(self_: *const PxParticleRigidBuffer) -> *mut f32;
+
+    /// Get the local position of each particle relative to the rigid body's center of mass.
+    ///
+    /// A pointer to a device buffer containing the local position for each particle.
+    pub fn PxParticleRigidBuffer_getRigidLocalPositions(self_: *const PxParticleRigidBuffer) -> *mut PxVec4;
+
+    /// Get the world-space translations for all rigid bodies in this buffer.
+    ///
+    /// A pointer to a device buffer containing the world-space translations for all shape-matched rigid bodies in this buffer.
+    pub fn PxParticleRigidBuffer_getRigidTranslations(self_: *const PxParticleRigidBuffer) -> *mut PxVec4;
+
+    /// Get the world-space rotation of every shape-matched rigid body in this buffer.
+    ///
+    /// Rotations are specified as quaternions.
+    ///
+    /// A pointer to a device buffer containing the world-space rotation for every shape-matched rigid body in this buffer.
+    pub fn PxParticleRigidBuffer_getRigidRotations(self_: *const PxParticleRigidBuffer) -> *mut PxVec4;
+
+    /// Get the local space normals for each particle relative to the shape of the corresponding rigid body.
+    ///
+    /// The 4th component of every PxVec4 should be the negative signed distance of the particle inside its shape.
+    ///
+    /// A pointer to a device buffer containing the local-space normals for each particle.
+    pub fn PxParticleRigidBuffer_getRigidLocalNormals(self_: *const PxParticleRigidBuffer) -> *mut PxVec4;
+
+    /// Set the number of shape matched rigid bodies in this buffer.
+    pub fn PxParticleRigidBuffer_setNbRigids_mut(self_: *mut PxParticleRigidBuffer, nbRigids: u32);
+
+    /// Get the number of shape matched rigid bodies in this buffer.
+    ///
+    /// The number of shape matched rigid bodies in this buffer.
+    pub fn PxParticleRigidBuffer_getNbRigids(self_: *const PxParticleRigidBuffer) -> u32;
+
+    /// Release this object and deallocate all the memory.
+    pub fn PxParticleClothPreProcessor_release_mut(self_: *mut PxParticleClothPreProcessor);
+
+    /// Partition the spring constraints for particle cloth simulation.
+    pub fn PxParticleClothPreProcessor_partitionSprings_mut(self_: *mut PxParticleClothPreProcessor, clothDesc: *const PxParticleClothDesc, output: *mut PxPartitionedParticleCloth);
+
+    /// Create a particle cloth preprocessor.
+    ///
+    /// See [`PxParticleClothDesc`], #PxPartitionedParticleCloth.
+    pub fn phys_PxCreateParticleClothPreProcessor(cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleClothPreProcessor;
+
+    /// Set wind direction and intensity
+    pub fn PxPBDParticleSystem_setWind_mut(self_: *mut PxPBDParticleSystem, wind: *const PxVec3);
+
+    /// Retrieves the wind direction and intensity.
+    ///
+    /// The wind direction and intensity
+    pub fn PxPBDParticleSystem_getWind(self_: *const PxPBDParticleSystem) -> PxVec3;
+
+    /// Set the fluid boundary density scale
+    ///
+    /// Defines how strong of a contribution the boundary (typically a rigid surface) should have on a fluid particle's density.
+    pub fn PxPBDParticleSystem_setFluidBoundaryDensityScale_mut(self_: *mut PxPBDParticleSystem, fluidBoundaryDensityScale: f32);
+
+    /// Return the fluid boundary density scale
+    ///
+    /// the fluid boundary density scale
+    ///
+    /// See [`setFluidBoundaryDensityScale`]()
+    pub fn PxPBDParticleSystem_getFluidBoundaryDensityScale(self_: *const PxPBDParticleSystem) -> f32;
+
+    /// Set the fluid rest offset
+    ///
+    /// Two fluid particles will come to rest at a distance equal to twice the fluidRestOffset value.
+    pub fn PxPBDParticleSystem_setFluidRestOffset_mut(self_: *mut PxPBDParticleSystem, fluidRestOffset: f32);
+
+    /// Return the fluid rest offset
+    ///
+    /// the fluid rest offset
+    ///
+    /// See [`setFluidRestOffset`]()
+    pub fn PxPBDParticleSystem_getFluidRestOffset(self_: *const PxPBDParticleSystem) -> f32;
+
+    /// Set the particle system grid size x dimension
+    pub fn PxPBDParticleSystem_setGridSizeX_mut(self_: *mut PxPBDParticleSystem, gridSizeX: u32);
+
+    /// Set the particle system grid size y dimension
+    pub fn PxPBDParticleSystem_setGridSizeY_mut(self_: *mut PxPBDParticleSystem, gridSizeY: u32);
+
+    /// Set the particle system grid size z dimension
+    pub fn PxPBDParticleSystem_setGridSizeZ_mut(self_: *mut PxPBDParticleSystem, gridSizeZ: u32);
+
+    pub fn PxPBDParticleSystem_getConcreteTypeName(self_: *const PxPBDParticleSystem) -> *const std::ffi::c_char;
 
     /// Sets friction
     pub fn PxParticleMaterial_setFriction_mut(self_: *mut PxParticleMaterial, friction: f32);
@@ -9385,6 +10231,111 @@ extern "C" {
     ///
     /// The adhesion radius scale.
     pub fn PxParticleMaterial_getAdhesionRadiusScale(self_: *const PxParticleMaterial) -> f32;
+
+    /// Sets viscosity
+    pub fn PxPBDMaterial_setViscosity_mut(self_: *mut PxPBDMaterial, viscosity: f32);
+
+    /// Retrieves the viscosity value.
+    ///
+    /// The viscosity value.
+    pub fn PxPBDMaterial_getViscosity(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material vorticity confinement coefficient
+    pub fn PxPBDMaterial_setVorticityConfinement_mut(self_: *mut PxPBDMaterial, vorticityConfinement: f32);
+
+    /// Retrieves the vorticity confinement coefficient.
+    ///
+    /// The vorticity confinement coefficient.
+    pub fn PxPBDMaterial_getVorticityConfinement(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material surface tension coefficient
+    pub fn PxPBDMaterial_setSurfaceTension_mut(self_: *mut PxPBDMaterial, surfaceTension: f32);
+
+    /// Retrieves the surface tension coefficient.
+    ///
+    /// The surface tension coefficient.
+    pub fn PxPBDMaterial_getSurfaceTension(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material cohesion coefficient
+    pub fn PxPBDMaterial_setCohesion_mut(self_: *mut PxPBDMaterial, cohesion: f32);
+
+    /// Retrieves the cohesion coefficient.
+    ///
+    /// The cohesion coefficient.
+    pub fn PxPBDMaterial_getCohesion(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material lift coefficient
+    pub fn PxPBDMaterial_setLift_mut(self_: *mut PxPBDMaterial, lift: f32);
+
+    /// Retrieves the lift coefficient.
+    ///
+    /// The lift coefficient.
+    pub fn PxPBDMaterial_getLift(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material drag coefficient
+    pub fn PxPBDMaterial_setDrag_mut(self_: *mut PxPBDMaterial, drag: f32);
+
+    /// Retrieves the drag coefficient.
+    ///
+    /// The drag coefficient.
+    pub fn PxPBDMaterial_getDrag(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets the CFL coefficient.
+    pub fn PxPBDMaterial_setCFLCoefficient_mut(self_: *mut PxPBDMaterial, coefficient: f32);
+
+    /// Retrieves the CFL coefficient.
+    ///
+    /// The CFL coefficient.
+    pub fn PxPBDMaterial_getCFLCoefficient(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material particle friction scale. This allows the application to scale up/down the frictional effect between particles independent of the friction
+    /// coefficient, which also defines frictional behavior between the particle and rigid bodies/soft bodies/cloth etc.
+    pub fn PxPBDMaterial_setParticleFrictionScale_mut(self_: *mut PxPBDMaterial, scale: f32);
+
+    /// Retrieves the particle friction scale.
+    ///
+    /// The particle friction scale.
+    pub fn PxPBDMaterial_getParticleFrictionScale(self_: *const PxPBDMaterial) -> f32;
+
+    /// Sets material particle adhesion scale value. This is the adhesive value between particles defined as a scaled multiple of the adhesion parameter.
+    pub fn PxPBDMaterial_setParticleAdhesionScale_mut(self_: *mut PxPBDMaterial, adhesion: f32);
+
+    /// Retrieves the particle adhesion scale value.
+    ///
+    /// The particle adhesion scale value.
+    pub fn PxPBDMaterial_getParticleAdhesionScale(self_: *const PxPBDMaterial) -> f32;
+
+    pub fn PxPBDMaterial_getConcreteTypeName(self_: *const PxPBDMaterial) -> *const std::ffi::c_char;
+
+    pub fn PxCustomMaterial_getConcreteTypeName(self_: *const PxCustomMaterial) -> *const std::ffi::c_char;
+
+    /// Deletes the buffer.
+    ///
+    /// Do not keep a reference to the deleted instance.
+    /// Unfinished operations will be flushed and synchronized on.
+    pub fn PxBuffer_release_mut(self_: *mut PxBuffer);
+
+    /// Provides access to internal memory (either device or pinned host memory depending on PxBufferType).
+    ///
+    /// Unfinished operations will be flushed and synchronized on before returning.
+    pub fn PxBuffer_map_mut(self_: *mut PxBuffer) -> *mut std::ffi::c_void;
+
+    /// Releases access to internal memory (either device or pinned host memory depending on PxBufferType).
+    pub fn PxBuffer_unmap_mut(self_: *mut PxBuffer, event: *mut std::ffi::c_void);
+
+    /// Buffer memory space type.
+    pub fn PxBuffer_getBufferType(self_: *const PxBuffer) -> PxBufferType;
+
+    /// Size of buffer in bytes.
+    pub fn PxBuffer_getByteSize(self_: *const PxBuffer) -> u64;
+
+    /// Get the associated PxCudaContextManager.
+    pub fn PxBuffer_getCudaContextManager(self_: *const PxBuffer) -> *mut PxCudaContextManager;
+
+    /// Helper function to synchronize on all pending operations.
+    pub fn PxBuffer_sync_mut(self_: *mut PxBuffer);
+
+    pub fn PxBuffer_resize_mut(self_: *mut PxBuffer, size: u64);
 
     /// Destroys the instance it is called on.
     ///
@@ -9584,6 +10535,15 @@ extern "C" {
     /// Shared shapes are not mutable when they are attached to an actor
     pub fn PxPhysics_createShape_mut(self_: *mut PxPhysics, geometry: *const PxGeometry, material: *const PxMaterial, isExclusive: bool, shapeFlags: PxShapeFlags) -> *mut PxShape;
 
+    /// Creates a shape which may be attached to one or more softbody actors
+    ///
+    /// The shape will be created with a reference count of 1.
+    ///
+    /// The shape
+    ///
+    /// Shared shapes are not mutable when they are attached to an actor
+    pub fn PxPhysics_createShape_mut_1(self_: *mut PxPhysics, geometry: *const PxGeometry, material: *const PxFEMSoftBodyMaterial, isExclusive: bool, shapeFlags: PxShapeFlags) -> *mut PxShape;
+
     /// Creates a shape which may be attached to multiple actors
     ///
     /// The shape will be created with a reference count of 1.
@@ -9593,7 +10553,11 @@ extern "C" {
     /// Shared shapes are not mutable when they are attached to an actor
     ///
     /// Shapes created from *SDF* triangle-mesh geometries do not support more than one material.
-    pub fn PxPhysics_createShape_mut_1(self_: *mut PxPhysics, geometry: *const PxGeometry, materials: *const *mut PxMaterial, materialCount: u16, isExclusive: bool, shapeFlags: PxShapeFlags) -> *mut PxShape;
+    pub fn PxPhysics_createShape_mut_2(self_: *mut PxPhysics, geometry: *const PxGeometry, materials: *const *mut PxMaterial, materialCount: u16, isExclusive: bool, shapeFlags: PxShapeFlags) -> *mut PxShape;
+
+    pub fn PxPhysics_createShape_mut_3(self_: *mut PxPhysics, geometry: *const PxGeometry, materials: *const *mut PxFEMSoftBodyMaterial, materialCount: u16, isExclusive: bool, shapeFlags: PxShapeFlags) -> *mut PxShape;
+
+    pub fn PxPhysics_createShape_mut_4(self_: *mut PxPhysics, geometry: *const PxGeometry, materials: *const *mut PxFEMClothMaterial, materialCount: u16, isExclusive: bool, shapeFlags: PxShapeFlags) -> *mut PxShape;
 
     /// Return the number of shapes that currently exist.
     ///
@@ -9622,6 +10586,82 @@ extern "C" {
     /// the new articulation
     pub fn PxPhysics_createArticulationReducedCoordinate_mut(self_: *mut PxPhysics) -> *mut PxArticulationReducedCoordinate;
 
+    /// Creates a FEM-based cloth with all fields initialized to their default values.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// the new FEM-cloth
+    pub fn PxPhysics_createFEMCloth_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager) -> *mut PxFEMCloth;
+
+    /// Creates a FEM-based soft body with all fields initialized to their default values.
+    ///
+    /// the new soft body
+    pub fn PxPhysics_createSoftBody_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager) -> *mut PxSoftBody;
+
+    /// Creates a hair system with all fields initialized to their default values.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// the new hair system
+    pub fn PxPhysics_createHairSystem_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager) -> *mut PxHairSystem;
+
+    /// Creates a particle system with a position-based dynamics (PBD) solver.
+    ///
+    /// A PBD particle system can be used to simulate particle systems with fluid and granular particles. It also allows simulating cloth using
+    /// mass-spring constraints and rigid bodies by shape matching the bodies with particles.
+    ///
+    /// the new particle system
+    pub fn PxPhysics_createPBDParticleSystem_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager, maxNeighborhood: u32) -> *mut PxPBDParticleSystem;
+
+    /// Creates a particle system with a fluid-implicit particle solver (FLIP).
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// the new particle system
+    pub fn PxPhysics_createFLIPParticleSystem_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager) -> *mut PxFLIPParticleSystem;
+
+    /// Creates a particle system with a material-point-method solver (MPM).
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// A MPM particle system can be used to simulate fluid dynamics and deformable body effects using particles.
+    ///
+    /// the new particle system
+    pub fn PxPhysics_createMPMParticleSystem_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager) -> *mut PxMPMParticleSystem;
+
+    /// Creates a customizable particle system to simulate effects that are not supported by PhysX natively (e.g. molecular dynamics).
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// the new particle system
+    pub fn PxPhysics_createCustomParticleSystem_mut(self_: *mut PxPhysics, cudaContextManager: *mut PxCudaContextManager, maxNeighborhood: u32) -> *mut PxCustomParticleSystem;
+
+    /// Create a buffer for reading and writing data across host and device memory spaces.
+    ///
+    /// PxBuffer instance.
+    pub fn PxPhysics_createBuffer_mut(self_: *mut PxPhysics, byteSize: u64, bufferType: PxBufferType, cudaContextManager: *mut PxCudaContextManager) -> *mut PxBuffer;
+
+    /// Create particle buffer to simulate fluid/granular material.
+    ///
+    /// PxParticleBuffer instance
+    pub fn PxPhysics_createParticleBuffer_mut(self_: *mut PxPhysics, maxParticles: u32, maxVolumes: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleBuffer;
+
+    /// Create a particle buffer for fluid dynamics with diffuse particles. Diffuse particles are used to simulate fluid effects
+    /// such as foam, spray and bubbles.
+    ///
+    /// PxParticleAndDiffuseBuffer instance
+    pub fn PxPhysics_createParticleAndDiffuseBuffer_mut(self_: *mut PxPhysics, maxParticles: u32, maxVolumes: u32, maxDiffuseParticles: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleAndDiffuseBuffer;
+
+    /// Create a particle buffer to simulate particle cloth.
+    ///
+    /// PxParticleClothBuffer instance
+    pub fn PxPhysics_createParticleClothBuffer_mut(self_: *mut PxPhysics, maxParticles: u32, maxNumVolumes: u32, maxNumCloths: u32, maxNumTriangles: u32, maxNumSprings: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleClothBuffer;
+
+    /// Create a particle buffer to simulate rigid bodies using shape matching with particles.
+    ///
+    /// PxParticleRigidBuffer instance
+    pub fn PxPhysics_createParticleRigidBuffer_mut(self_: *mut PxPhysics, maxParticles: u32, maxNumVolumes: u32, maxNumRigids: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleRigidBuffer;
+
     /// Creates a new rigid body material with certain default properties.
     ///
     /// The new rigid body material.
@@ -9640,6 +10680,108 @@ extern "C" {
     ///
     /// The number of material pointers written to userBuffer, this should be less or equal to bufferSize.
     pub fn PxPhysics_getMaterials(self_: *const PxPhysics, userBuffer: *mut *mut PxMaterial, bufferSize: u32, startIndex: u32) -> u32;
+
+    /// Creates a new FEM soft body material with certain default properties.
+    ///
+    /// The new FEM material.
+    pub fn PxPhysics_createFEMSoftBodyMaterial_mut(self_: *mut PxPhysics, youngs: f32, poissons: f32, dynamicFriction: f32) -> *mut PxFEMSoftBodyMaterial;
+
+    /// Return the number of FEM soft body materials that currently exist.
+    ///
+    /// Number of FEM materials.
+    pub fn PxPhysics_getNbFEMSoftBodyMaterials(self_: *const PxPhysics) -> u32;
+
+    /// Writes the array of FEM soft body material pointers to a user buffer.
+    ///
+    /// Returns the number of pointers written.
+    ///
+    /// The ordering of the materials in the array is not specified.
+    ///
+    /// The number of material pointers written to userBuffer, this should be less or equal to bufferSize.
+    pub fn PxPhysics_getFEMSoftBodyMaterials(self_: *const PxPhysics, userBuffer: *mut *mut PxFEMSoftBodyMaterial, bufferSize: u32, startIndex: u32) -> u32;
+
+    /// Creates a new FEM cloth material with certain default properties.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// The new FEM material.
+    pub fn PxPhysics_createFEMClothMaterial_mut(self_: *mut PxPhysics, youngs: f32, poissons: f32, dynamicFriction: f32) -> *mut PxFEMClothMaterial;
+
+    /// Return the number of FEM cloth materials that currently exist.
+    ///
+    /// Number of FEM cloth materials.
+    pub fn PxPhysics_getNbFEMClothMaterials(self_: *const PxPhysics) -> u32;
+
+    /// Writes the array of FEM cloth material pointers to a user buffer.
+    ///
+    /// Returns the number of pointers written.
+    ///
+    /// The ordering of the materials in the array is not specified.
+    ///
+    /// The number of material pointers written to userBuffer, this should be less or equal to bufferSize.
+    pub fn PxPhysics_getFEMClothMaterials(self_: *const PxPhysics, userBuffer: *mut *mut PxFEMClothMaterial, bufferSize: u32, startIndex: u32) -> u32;
+
+    /// Creates a new PBD material with certain default properties.
+    ///
+    /// The new PBD material.
+    pub fn PxPhysics_createPBDMaterial_mut(self_: *mut PxPhysics, friction: f32, damping: f32, adhesion: f32, viscosity: f32, vorticityConfinement: f32, surfaceTension: f32, cohesion: f32, lift: f32, drag: f32, cflCoefficient: f32, gravityScale: f32) -> *mut PxPBDMaterial;
+
+    /// Return the number of PBD materials that currently exist.
+    ///
+    /// Number of PBD materials.
+    pub fn PxPhysics_getNbPBDMaterials(self_: *const PxPhysics) -> u32;
+
+    /// Writes the array of PBD material pointers to a user buffer.
+    ///
+    /// Returns the number of pointers written.
+    ///
+    /// The ordering of the materials in the array is not specified.
+    ///
+    /// The number of material pointers written to userBuffer, this should be less or equal to bufferSize.
+    pub fn PxPhysics_getPBDMaterials(self_: *const PxPhysics, userBuffer: *mut *mut PxPBDMaterial, bufferSize: u32, startIndex: u32) -> u32;
+
+    /// Creates a new FLIP material with certain default properties.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// The new FLIP material.
+    pub fn PxPhysics_createFLIPMaterial_mut(self_: *mut PxPhysics, friction: f32, damping: f32, adhesion: f32, viscosity: f32, gravityScale: f32) -> *mut PxFLIPMaterial;
+
+    /// Writes the array of FLIP material pointers to a user buffer.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// Returns the number of pointers written.
+    ///
+    /// The ordering of the materials in the array is not specified.
+    ///
+    /// The number of material pointers written to userBuffer, this should be less or equal to bufferSize.
+    pub fn PxPhysics_getFLIPMaterials(self_: *const PxPhysics, userBuffer: *mut *mut PxFLIPMaterial, bufferSize: u32, startIndex: u32) -> u32;
+
+    /// Creates a new material for custom particle systems.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// the new material.
+    pub fn PxPhysics_createCustomMaterial_mut(self_: *mut PxPhysics, gpuBuffer: *mut std::ffi::c_void) -> *mut PxCustomMaterial;
+
+    /// Return the number of custom materials that currently exist.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// Number of custom materials.
+    pub fn PxPhysics_getNbCustomMaterials(self_: *const PxPhysics) -> u32;
+
+    /// Writes the array of custom material pointers to a user buffer.
+    ///
+    /// Feature under development, only for internal usage.
+    ///
+    /// Returns the number of pointers written.
+    ///
+    /// The ordering of the materials in the array is not specified.
+    ///
+    /// The number of material pointers written to userBuffer, this should be less or equal to bufferSize.
+    pub fn PxPhysics_getCustomMaterials(self_: *const PxPhysics, userBuffer: *mut *mut PxCustomMaterial, bufferSize: u32, startIndex: u32) -> u32;
 
     /// Register a deletion listener. Listeners will be called whenever an object is deleted.
     ///
@@ -9677,6 +10819,16 @@ extern "C" {
     ///
     /// The insertion interface is needed for PxCreateTriangleMesh, PxCooking::createTriangleMesh etc., this allows runtime mesh creation.
     pub fn PxPhysics_getPhysicsInsertionCallback_mut(self_: *mut PxPhysics) -> *mut PxInsertionCallback;
+
+    /// Creates an instance of the physics SDK with minimal additional components registered
+    ///
+    /// Creates an instance of this class. May not be a class member to avoid name mangling.
+    /// Pass the constant [`PX_PHYSICS_VERSION`] as the argument.
+    /// There may be only one instance of this class per process. Calling this method after an instance
+    /// has been created already will result in an error message and NULL will be returned.
+    ///
+    /// PxPhysics instance on success, NULL if operation failed
+    pub fn phys_PxCreateBasePhysics(version: u32, foundation: *mut PxFoundation, scale: *const PxTolerancesScale, trackOutstandingAllocations: bool, pvd: *mut PxPvd, omniPvd: *mut PxOmniPvd) -> *mut PxPhysics;
 
     /// Creates an instance of the physics SDK.
     ///

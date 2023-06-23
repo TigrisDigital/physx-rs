@@ -1,6 +1,7 @@
 **/target
 Cargo.lock
 .vscode/settings.json
+.idea
 
 # exclude `insta` snapshot new files
 *.snap.new
