@@ -73,7 +73,7 @@ static void reportError(const char* file, int line, const char* format, ...)
 }
 
 
-void PxSetPhysXGpuLoadHook(const PxGpuLoadHook* hook)
+void PxSetPhysXGpuLoadHook(const physx::PxGpuLoadHook* hook)
 {
 	gPhysXGpuLibraryName = hook->getPhysXGpuDllName();
 }

@@ -19,7 +19,7 @@ impl<T> Owner<T> {
     /// this must not be called on a pointer attained via Class::as_mut_ptr.  The
     /// intended pattern is to wrap the raw FFI constructors in this call, so that
     /// the amount of time spent dealing with raw pointers is as little as possible.
-    pub(crate) unsafe fn from_raw(ptr: *mut T) -> Option<Self> {
+    pub unsafe fn from_raw(ptr: *mut T) -> Option<Self> {
         Some(Self {
             ptr: NonNull::new(ptr)?,
         })

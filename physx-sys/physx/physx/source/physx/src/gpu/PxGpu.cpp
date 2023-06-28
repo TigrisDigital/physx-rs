@@ -34,126 +34,128 @@
 
 namespace physx
 {
-	//forward declare stuff from PxPhysXGpuModuleLoader.cpp
-	void PxLoadPhysxGPUModule(const char* appGUID);
+    //forward declare stuff from PxPhysXGpuModuleLoader.cpp
+    void PxLoadPhysxGPUModule(const char* appGUID);
 
-	typedef physx::PxCudaContextManager* (PxCreateCudaContextManager_FUNC)(physx::PxFoundation& foundation, const physx::PxCudaContextManagerDesc& desc, physx::PxProfilerCallback* profilerCallback);
-	typedef int (PxGetSuggestedCudaDeviceOrdinal_FUNC)(physx::PxErrorCallback& errc);
-	typedef void (PxSetPhysXGpuProfilerCallback_FUNC)(physx::PxProfilerCallback* cbk);
-	typedef void (PxCudaRegisterFunction_FUNC)(int, const char*);
-	typedef void** (PxCudaRegisterFatBinary_FUNC)(void*);
-	typedef physx::PxKernelIndex* (PxGetCudaFunctionTable_FUNC)();
-	typedef PxU32 (PxGetCudaFunctionTableSize_FUNC)();
-	typedef void** PxGetCudaModuleTable_FUNC();
+    typedef physx::PxCudaContextManager* (PxCreateCudaContextManager_FUNC)(physx::PxFoundation& foundation, const physx::PxCudaContextManagerDesc& desc, physx::PxProfilerCallback* profilerCallback);
+    typedef int (PxGetSuggestedCudaDeviceOrdinal_FUNC)(physx::PxErrorCallback& errc);
+    typedef void (PxSetPhysXGpuProfilerCallback_FUNC)(physx::PxProfilerCallback* cbk);
+    typedef void (PxCudaRegisterFunction_FUNC)(int, const char*);
+    typedef void** (PxCudaRegisterFatBinary_FUNC)(void*);
+    typedef physx::PxKernelIndex* (PxGetCudaFunctionTable_FUNC)();
+    typedef PxU32 (PxGetCudaFunctionTableSize_FUNC)();
+    typedef void** PxGetCudaModuleTable_FUNC();
 
-	extern PxCreateCudaContextManager_FUNC*  g_PxCreateCudaContextManager_Func;
-	extern PxGetSuggestedCudaDeviceOrdinal_FUNC* g_PxGetSuggestedCudaDeviceOrdinal_Func;
-	extern PxSetPhysXGpuProfilerCallback_FUNC* g_PxSetPhysXGpuProfilerCallback_Func;
-	extern PxCudaRegisterFunction_FUNC* g_PxCudaRegisterFunction_Func;
-	extern PxCudaRegisterFatBinary_FUNC* g_PxCudaRegisterFatBinary_Func;
-	extern PxGetCudaFunctionTable_FUNC* g_PxGetCudaFunctionTable_Func;
-	extern PxGetCudaFunctionTableSize_FUNC* g_PxGetCudaFunctionTableSize_Func;
-	extern PxGetCudaFunctionTableSize_FUNC* g_PxGetCudaModuleTableSize_Func;
-	extern PxGetCudaModuleTable_FUNC* g_PxGetCudaModuleTable_Func;
+    extern PxCreateCudaContextManager_FUNC*  g_PxCreateCudaContextManager_Func;
+    extern PxGetSuggestedCudaDeviceOrdinal_FUNC* g_PxGetSuggestedCudaDeviceOrdinal_Func;
+    extern PxSetPhysXGpuProfilerCallback_FUNC* g_PxSetPhysXGpuProfilerCallback_Func;
+    extern PxCudaRegisterFunction_FUNC* g_PxCudaRegisterFunction_Func;
+    extern PxCudaRegisterFatBinary_FUNC* g_PxCudaRegisterFatBinary_Func;
+    extern PxGetCudaFunctionTable_FUNC* g_PxGetCudaFunctionTable_Func;
+    extern PxGetCudaFunctionTableSize_FUNC* g_PxGetCudaFunctionTableSize_Func;
+    extern PxGetCudaFunctionTableSize_FUNC* g_PxGetCudaModuleTableSize_Func;
+    extern PxGetCudaModuleTable_FUNC* g_PxGetCudaModuleTable_Func;
 
-} // end of physx namespace
+ // end of physx namespace
 
 
 
 physx::PxCudaContextManager* PxCreateCudaContextManager(physx::PxFoundation& foundation, const physx::PxCudaContextManagerDesc& desc, physx::PxProfilerCallback* profilerCallback)
 {
-	if (!physx::g_PxCreateCudaContextManager_Func)
-		physx::PxLoadPhysxGPUModule(desc.appGUID);
+    if (!physx::g_PxCreateCudaContextManager_Func)
+        physx::PxLoadPhysxGPUModule(desc.appGUID);
 
-	if (physx::g_PxCreateCudaContextManager_Func)
-		return physx::g_PxCreateCudaContextManager_Func(foundation, desc, profilerCallback);
-	else
-		return NULL;
+    if (physx::g_PxCreateCudaContextManager_Func)
+        return physx::g_PxCreateCudaContextManager_Func(foundation, desc, profilerCallback);
+    else
+        return NULL;
 }
 
 int PxGetSuggestedCudaDeviceOrdinal(physx::PxErrorCallback& errc)
 {
-	if (!physx::g_PxGetSuggestedCudaDeviceOrdinal_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if (!physx::g_PxGetSuggestedCudaDeviceOrdinal_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if (physx::g_PxGetSuggestedCudaDeviceOrdinal_Func)
-		return physx::g_PxGetSuggestedCudaDeviceOrdinal_Func(errc);
-	else
-		return -1;
+    if (physx::g_PxGetSuggestedCudaDeviceOrdinal_Func)
+        return physx::g_PxGetSuggestedCudaDeviceOrdinal_Func(errc);
+    else
+        return -1;
 }
 
 void PxSetPhysXGpuProfilerCallback(physx::PxProfilerCallback* profilerCallback)
 {
-	if (!physx::g_PxSetPhysXGpuProfilerCallback_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if (!physx::g_PxSetPhysXGpuProfilerCallback_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if (physx::g_PxSetPhysXGpuProfilerCallback_Func)
-		physx::g_PxSetPhysXGpuProfilerCallback_Func(profilerCallback);
+    if (physx::g_PxSetPhysXGpuProfilerCallback_Func)
+        physx::g_PxSetPhysXGpuProfilerCallback_Func(profilerCallback);
 }
 
 void PxCudaRegisterFunction(int moduleIndex, const char* functionName)
 {
-	if (!physx::g_PxCudaRegisterFunction_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if (!physx::g_PxCudaRegisterFunction_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if (physx::g_PxCudaRegisterFunction_Func)
-		physx::g_PxCudaRegisterFunction_Func(moduleIndex, functionName);
+    if (physx::g_PxCudaRegisterFunction_Func)
+        physx::g_PxCudaRegisterFunction_Func(moduleIndex, functionName);
 }
 
 void** PxCudaRegisterFatBinary(void* fatBin)
 {
-	if (!physx::g_PxCudaRegisterFatBinary_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if (!physx::g_PxCudaRegisterFatBinary_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if (physx::g_PxCudaRegisterFatBinary_Func)
-		return physx::g_PxCudaRegisterFatBinary_Func(fatBin);
+    if (physx::g_PxCudaRegisterFatBinary_Func)
+        return physx::g_PxCudaRegisterFatBinary_Func(fatBin);
 
-	return NULL;
+    return NULL;
 }
 
 
 physx::PxKernelIndex* PxGetCudaFunctionTable()
 {
-	if(!physx::g_PxGetCudaFunctionTable_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if(!physx::g_PxGetCudaFunctionTable_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if(physx::g_PxGetCudaFunctionTable_Func)
-		return physx::g_PxGetCudaFunctionTable_Func();
+    if(physx::g_PxGetCudaFunctionTable_Func)
+        return physx::g_PxGetCudaFunctionTable_Func();
 
-	return NULL;
+    return NULL;
 }
 
 physx::PxU32 PxGetCudaFunctionTableSize() {
 
-	if(!physx::g_PxGetCudaFunctionTableSize_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if(!physx::g_PxGetCudaFunctionTableSize_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if(physx::g_PxGetCudaFunctionTableSize_Func)
-		return physx::g_PxGetCudaFunctionTableSize_Func();
+    if(physx::g_PxGetCudaFunctionTableSize_Func)
+        return physx::g_PxGetCudaFunctionTableSize_Func();
 
-	return 0;
+    return 0;
 }
 
 void** PxGetCudaModuleTable() {
-	if(!physx::g_PxGetCudaModuleTable_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if(!physx::g_PxGetCudaModuleTable_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if(physx::g_PxGetCudaModuleTable_Func)
-		return physx::g_PxGetCudaModuleTable_Func();
+    if(physx::g_PxGetCudaModuleTable_Func)
+        return physx::g_PxGetCudaModuleTable_Func();
 
-	return NULL;
+    return NULL;
 }
 
 
 physx::PxU32 PxGetCudaModuleTableSize()
 {
-	if(!physx::g_PxGetCudaModuleTableSize_Func)
-		physx::PxLoadPhysxGPUModule(NULL);
+    if(!physx::g_PxGetCudaModuleTableSize_Func)
+        physx::PxLoadPhysxGPUModule(NULL);
 
-	if(physx::g_PxGetCudaModuleTableSize_Func)
-		return physx::g_PxGetCudaModuleTableSize_Func();
+    if(physx::g_PxGetCudaModuleTableSize_Func)
+        return physx::g_PxGetCudaModuleTableSize_Func();
 
-	return 0;
+    return 0;
+}
+
 }
 
 

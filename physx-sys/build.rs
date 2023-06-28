@@ -339,6 +339,7 @@ fn add_common(ctx: &mut Context) {
 
     builder.define("PX_SUPPORT_PVD", "1");
     builder.define("PX_SUPPORT_GPU_PHYSX", "1");
+    builder.define("PX_PHYSX_GPU_SHARED_LIB_NAME", "libPhysXGpu_64.so");
 
     if cfg!(feature = "profile") {
         builder.define("PX_PROFILE", "1");
@@ -525,6 +526,7 @@ fn main() {
         .extra_warnings(false)
         .define("NDEBUG", None)
         .define("PX_PHYSX_STATIC_LIB", None)
+        .define("PX_PHYSX_GPU_SHARED_LIB_NAME", "libPhysXGpu_64.so")
         .include("physx/physx/include")
         .include("physx/pxshared/include")
         .include("physx/physx/source/foundation/include");
