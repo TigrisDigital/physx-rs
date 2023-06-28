@@ -355,6 +355,11 @@ private:
 
 extern "C"
 {
+    PxCudaContextManager* physx_create_cuda_context_manager(PxFoundation& foundation, const PxCudaContextManagerDesc& desc, PxProfilerCallback* profilerCallback)
+    {
+        return PxCreateCudaContextManager(foundation, desc, profilerCallback);
+    }
+
     PxFoundation *physx_create_foundation()
     {
         return PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);

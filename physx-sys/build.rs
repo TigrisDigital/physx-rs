@@ -252,6 +252,16 @@ fn physx(ctx: &mut Context) {
     // there's always a "core"
     let sources = include!("sources/core");
     ctx.add_sources("source/physx/src", &sources);
+
+    ctx.add_sources(
+        "source/physx/src/gpu",
+        &["PxGpu", "PxPhysXGpuModuleLoader"],
+    );
+
+    ctx.add_sources(
+        "source/physx/src/device/linux",
+        &["PhysXIndicatorLinux"],
+    );
 }
 
 fn add_common(ctx: &mut Context) {
@@ -301,7 +311,10 @@ fn add_common(ctx: &mut Context) {
             "source/common/src",
             "source/filebuf/include", // only used by pvd
             "include/cudamanager",
-            "source/physxgpu/include"
+            "source/physxgpu/include",
+            "include/gpu",
+            "source/physx/src/device"
+            //"source/physx/src/gpu"
         ]
         .iter()
         .map(|inc| root.join(inc)),
@@ -325,6 +338,7 @@ fn add_common(ctx: &mut Context) {
     }
 
     builder.define("PX_SUPPORT_PVD", "1");
+    builder.define("PX_SUPPORT_GPU_PHYSX", "1");
 
     if cfg!(feature = "profile") {
         builder.define("PX_PROFILE", "1");
@@ -443,6 +457,7 @@ fn cc_compile(target_env: Environment) {
         ctx.builder.include(dir);
     }
 
+    ctx.builder.cuda(true);
     ctx.builder.compile("physx");
 }
 
@@ -506,6 +521,7 @@ fn main() {
         .debug(false)
         .use_plt(false)
         .warnings(false)
+        .cuda(true)
         .extra_warnings(false)
         .define("NDEBUG", None)
         .define("PX_PHYSX_STATIC_LIB", None)
