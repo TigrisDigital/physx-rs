@@ -355,6 +355,14 @@ private:
 
 extern "C"
 {
+    PxU32* alloc_pinned_host_buffer_pxu32(PxCudaContextManager *cudaContextManager, PxU32 numElements) {
+        return cudaContextManager->allocPinnedHostBuffer<PxU32>(numElements);
+    }
+
+    PxVec4* alloc_pinned_host_buffer_pxvec4(PxCudaContextManager *cudaContextManager, PxU32 numElements) {
+        return cudaContextManager->allocPinnedHostBuffer<PxVec4>(numElements);
+    }
+
     PxCudaContextManager* physx_create_cuda_context_manager(PxFoundation& foundation, const PxCudaContextManagerDesc& desc, PxProfilerCallback* profilerCallback)
     {
         return PxCreateCudaContextManager(foundation, desc, profilerCallback);

@@ -40,11 +40,11 @@
 #include "PxAttachment.h"
 
 #if !PX_DOXYGEN
-namespace physx
-{
+//namespace ExtGpu
+//{
 #endif
 
-namespace ExtGpu
+namespace physx
 {
 
 /**
@@ -52,14 +52,14 @@ namespace ExtGpu
 */
 struct PxParticleBufferDesc
 {
-	PxVec4* positions;
-	PxVec4* velocities;
-	PxU32*  phases;
-	PxParticleVolume* volumes;
-	PxU32	numActiveParticles;
-	PxU32	maxParticles;
-	PxU32	numVolumes;
-	PxU32	maxVolumes;
+    PxVec4* positions;
+    PxVec4* velocities;
+    PxU32*  phases;
+    PxParticleVolume* volumes;
+    PxU32	numActiveParticles;
+    PxU32	maxParticles;
+    PxU32	numVolumes;
+    PxU32	maxVolumes;
 
 	PxParticleBufferDesc() : positions(NULL), velocities(NULL), phases(NULL), volumes(NULL), numActiveParticles(0), maxParticles(0), numVolumes(0), maxVolumes(0) { }
 };
@@ -69,9 +69,9 @@ struct PxParticleBufferDesc
 */
 struct PxParticleAndDiffuseBufferDesc : public PxParticleBufferDesc
 {
-	PxDiffuseParticleParams diffuseParams;
-	PxU32 maxDiffuseParticles;
-	PxU32 maxActiveDiffuseParticles;
+    PxDiffuseParticleParams diffuseParams;
+    PxU32 maxDiffuseParticles;
+    PxU32 maxActiveDiffuseParticles;
 
 	PxParticleAndDiffuseBufferDesc() : PxParticleBufferDesc() { }
 };
@@ -84,14 +84,14 @@ struct PxParticleRigidDesc
 	PxParticleRigidDesc() : rigidOffsets(NULL), rigidCoefficients(NULL), rigidTranslations(NULL), rigidRotations(NULL), 
 		rigidLocalPositions(NULL), rigidLocalNormals(NULL), maxRigids(0), numActiveRigids(0) { }
 
-	PxU32*		rigidOffsets;
-	PxReal*		rigidCoefficients;
-	PxVec4*		rigidTranslations;
-	PxQuat*		rigidRotations;
-	PxVec4*		rigidLocalPositions;
-	PxVec4*		rigidLocalNormals;
+    PxU32*		rigidOffsets;
+    PxReal*		rigidCoefficients;
+    PxVec4*		rigidTranslations;
+    PxQuat*		rigidRotations;
+    PxVec4*		rigidLocalPositions;
+    PxVec4*		rigidLocalNormals;
 	PxU32		maxRigids;
-	PxU32		numActiveRigids;
+    PxU32		numActiveRigids;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ public:
 	virtual void release() = 0;
 
 	virtual PxU32 getMaxCloths() const = 0;		//!< \return The maximum number of cloths this PxParticleClothBufferHelper can hold.
-	virtual PxU32 getNumCloths() const = 0;		//!< \return The current number of cloths in this PxParticleClothBufferHelper. 
+	virtual PxU32 getNumCloths() const = 0;		//!< \return The current number of cloths in this PxParticleClothBufferHelper.
 	virtual PxU32 getMaxSprings() const = 0;	//!< \return The maximum number of springs this PxParticleClothBufferHelper can hold.
 	virtual PxU32 getNumSprings() const = 0;	//!< \return The current number of springs in this PxParticleClothBufferHelper.
 	virtual PxU32 getMaxTriangles() const = 0;  //!< \return The maximum number of triangles this PxParticleClothBufferHelper can hold.
@@ -126,7 +126,7 @@ public:
 	
 	@see PxParticleCloth PxParticleSpring
 	*/
-	virtual void addCloth(const PxParticleCloth& particleCloth, 
+	virtual void addCloth(const PxParticleCloth& particleCloth,
 		const PxU32* triangles, const PxU32 numTriangles,
 		const PxParticleSpring* springs, const PxU32 numSprings, const PxVec4* restPositions, const PxU32 numParticles) = 0;
 
@@ -148,9 +148,9 @@ public:
 
 	@see PxParticleSpring
 	*/
-	virtual void addCloth(const PxReal blendScale, const PxReal restVolume, const PxReal pressure, 
+	virtual void addCloth(const PxReal blendScale, const PxReal restVolume, const PxReal pressure,
 		const PxU32* triangles, const PxU32 numTriangles,
-		const PxParticleSpring* springs, const PxU32 numSprings, 
+		const PxParticleSpring* springs, const PxU32 numSprings,
 		const PxVec4* restPositions, const PxU32 numParticles) = 0;
 
 	/**
@@ -172,8 +172,8 @@ protected:
 */
 struct PxParticleVolumeMesh
 {
-	PxU32 startIndex;	//!< The index of the first triangle of this mesh in the triangle array of the PxParticleVolumeBufferHelper instance.
-	PxU32 count;		//!< The number of triangles of this mesh.
+    PxU32 startIndex;	//!< The index of the first triangle of this mesh in the triangle array of the PxParticleVolumeBufferHelper instance.
+    PxU32 count;		//!< The number of triangles of this mesh.
 };
 
 /**
@@ -260,24 +260,24 @@ protected:
 /**
 \brief Holds user-defined attachment data to attach particles to other bodies
 */
-class PxParticleAttachmentBuffer : public PxUserAllocated
-{		
-	PxArray<PxParticleRigidAttachment> mAttachments;
-	PxArray<PxParticleRigidFilterPair> mFilters;
-	PxHashMap<PxRigidActor*, PxU32> mReferencedBodies;
-	PxArray<PxRigidActor*> mNewReferencedBodies;
-	PxArray<PxRigidActor*> mDestroyedRefrencedBodies;
+class PX_DEPRECATED PxParticleAttachmentBuffer : public PxUserAllocated
+{
+    PxArray<PxParticleRigidAttachment> mAttachments;
+    PxArray<PxParticleRigidFilterPair> mFilters;
+    PxHashMap<PxRigidActor*, PxU32> mReferencedBodies;
+    PxArray<PxRigidActor*> mNewReferencedBodies;
+    PxArray<PxRigidActor*> mDestroyedRefrencedBodies;
 
-	PxParticleBuffer& mParticleBuffer;
+    PxParticleBuffer& mParticleBuffer;
 
-	PxParticleRigidAttachment* mDeviceAttachments;
-	PxParticleRigidFilterPair* mDeviceFilters;
-	PxU32 mNumDeviceAttachments;
-	PxU32 mNumDeviceFilters;
+    PxParticleRigidAttachment* mDeviceAttachments;
+    PxParticleRigidFilterPair* mDeviceFilters;
+    PxU32 mNumDeviceAttachments;
+    PxU32 mNumDeviceFilters;
 
-	PxCudaContextManager* mCudaContextManager;
+    PxCudaContextManager* mCudaContextManager;
 
-	PxParticleSystem& mParticleSystem;
+    PxParticleSystem& mParticleSystem;
 
 	bool mDirty;
 
@@ -340,7 +340,7 @@ PxParticleVolumeBufferHelper* 			PxCreateParticleVolumeBufferHelper(PxU32 maxVol
 \param[in] particleSystem The particle system that is used to simulate the userBuffer
 \return An attachment buffer ready to use
 */
-PxParticleAttachmentBuffer*				PxCreateParticleAttachmentBuffer(PxParticleBuffer& particleBuffer, PxParticleSystem& particleSystem);
+PX_DEPRECATED PxParticleAttachmentBuffer*				PxCreateParticleAttachmentBuffer(PxParticleBuffer& particleBuffer, PxParticleSystem& particleSystem);
 
 /**
 \brief Creates and populates a particle buffer
@@ -349,7 +349,7 @@ PxParticleAttachmentBuffer*				PxCreateParticleAttachmentBuffer(PxParticleBuffer
 \param[in] cudaContextManager A cuda context manager
 \return A fully populated particle buffer ready to use
 */
-PxParticleBuffer*						PxCreateAndPopulateParticleBuffer(const ExtGpu::PxParticleBufferDesc& desc, PxCudaContextManager* cudaContextManager);
+PxParticleBuffer*						PxCreateAndPopulateParticleBuffer(const PxParticleBufferDesc& desc, PxCudaContextManager* cudaContextManager);
 		
 /**
 \brief Creates and populates a particle buffer that includes support for diffuse particles
@@ -358,7 +358,7 @@ PxParticleBuffer*						PxCreateAndPopulateParticleBuffer(const ExtGpu::PxParticl
 \param[in] cudaContextManager A cuda context manager
 \return A fully populated particle buffer ready to use
 */
-PxParticleAndDiffuseBuffer*				PxCreateAndPopulateParticleAndDiffuseBuffer(const ExtGpu::PxParticleAndDiffuseBufferDesc& desc, PxCudaContextManager* cudaContextManager);
+PxParticleAndDiffuseBuffer*				PxCreateAndPopulateParticleAndDiffuseBuffer(const PxParticleAndDiffuseBufferDesc& desc, PxCudaContextManager* cudaContextManager);
 
 /**
 \brief Creates and populates a particle cloth buffer
@@ -369,8 +369,8 @@ PxParticleAndDiffuseBuffer*				PxCreateAndPopulateParticleAndDiffuseBuffer(const
 \param[in] cudaContextManager A cuda context manager
 \return A fully populated particle cloth buffer ready to use
 */
-PxParticleClothBuffer*					PxCreateAndPopulateParticleClothBuffer(const ExtGpu::PxParticleBufferDesc& desc, const PxParticleClothDesc& clothDesc,
-											PxPartitionedParticleCloth& output, PxCudaContextManager* cudaContextManager);
+PxParticleClothBuffer*					PxCreateAndPopulateParticleClothBuffer(const PxParticleBufferDesc& desc, const PxParticleClothDesc& clothDesc,
+                                                 PxPartitionedParticleCloth& output, PxCudaContextManager* cudaContextManager);
 
 /**
 \brief Creates and populates a particle rigid buffer. Particle rigids are particles that try to keep their relative positions. They are a bit commpressible similar to softbodies.
@@ -380,13 +380,13 @@ PxParticleClothBuffer*					PxCreateAndPopulateParticleClothBuffer(const ExtGpu::
 \param[in] cudaContextManager A cuda context manager
 \return A fully populated particle rigid buffer ready to use
 */
-PxParticleRigidBuffer*					PxCreateAndPopulateParticleRigidBuffer(const ExtGpu::PxParticleBufferDesc& desc, const ExtGpu::PxParticleRigidDesc& rigidDesc,
-											PxCudaContextManager* cudaContextManager);
+PxParticleRigidBuffer*					PxCreateAndPopulateParticleRigidBuffer(const PxParticleBufferDesc& desc, const PxParticleRigidDesc& rigidDesc,
+                                         PxCudaContextManager* cudaContextManager);
 
 } // namespace ExtGpu
 
 #if !PX_DOXYGEN
-} // namespace physx
+//} // namespace physx
 #endif
 
 /** @} */

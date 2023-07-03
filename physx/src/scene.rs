@@ -27,6 +27,8 @@ use crate::{
     visual_debugger::PvdSceneClient,
 };
 
+use physx_sys::PxPBDParticleSystem;
+
 use std::{
     marker::PhantomData,
     ptr::{drop_in_place, null, null_mut},
@@ -376,6 +378,12 @@ pub trait Scene: Class<physx_sys::PxScene> + UserData {
     fn add_static_actor(&mut self, actor: Owner<Self::RigidStatic>) {
         unsafe {
             PxScene_addActor_mut(self.as_mut_ptr(), actor.into_ptr(), null());
+        }
+    }
+
+    fn add_pbd_particle_system_actor(&mut self, actor: *mut physx_sys::PxPBDParticleSystem) {
+        unsafe {
+            PxScene_addActor_mut(self.as_mut_ptr(), actor.as_mut().unwrap().as_mut_ptr(), null());
         }
     }
 

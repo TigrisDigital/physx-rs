@@ -1003,54 +1003,6 @@ int main() {
     };
     physx_PxSoftBodyMesh_Pod::dump_layout(sg);
 
-    struct physx_PxCollisionMeshMappingData_Pod: public physx::PxCollisionMeshMappingData {
-        static void dump_layout(PodStructGen& sg) {
-            sg.begin_struct("physx_PxCollisionMeshMappingData_Pod", "PxCollisionMeshMappingData");
-            sg.end_struct(sizeof(physx::PxCollisionMeshMappingData));
-        }
-    };
-    physx_PxCollisionMeshMappingData_Pod::dump_layout(sg);
-
-    struct physx_PxSoftBodyCollisionData_Pod: public physx::PxSoftBodyCollisionData {
-        static void dump_layout(PodStructGen& sg) {
-            sg.begin_struct("physx_PxSoftBodyCollisionData_Pod", "PxSoftBodyCollisionData");
-            sg.end_struct(sizeof(physx::PxSoftBodyCollisionData));
-        }
-    };
-    physx_PxSoftBodyCollisionData_Pod::dump_layout(sg);
-
-    struct physx_PxTetrahedronMeshData_Pod: public physx::PxTetrahedronMeshData {
-        static void dump_layout(PodStructGen& sg) {
-            sg.begin_struct("physx_PxTetrahedronMeshData_Pod", "PxTetrahedronMeshData");
-            sg.end_struct(sizeof(physx::PxTetrahedronMeshData));
-        }
-    };
-    physx_PxTetrahedronMeshData_Pod::dump_layout(sg);
-
-    struct physx_PxSoftBodySimulationData_Pod: public physx::PxSoftBodySimulationData {
-        static void dump_layout(PodStructGen& sg) {
-            sg.begin_struct("physx_PxSoftBodySimulationData_Pod", "PxSoftBodySimulationData");
-            sg.end_struct(sizeof(physx::PxSoftBodySimulationData));
-        }
-    };
-    physx_PxSoftBodySimulationData_Pod::dump_layout(sg);
-
-    struct physx_PxCollisionTetrahedronMeshData_Pod: public physx::PxCollisionTetrahedronMeshData {
-        static void dump_layout(PodStructGen& sg) {
-            sg.begin_struct("physx_PxCollisionTetrahedronMeshData_Pod", "PxCollisionTetrahedronMeshData");
-            sg.end_struct(sizeof(physx::PxCollisionTetrahedronMeshData));
-        }
-    };
-    physx_PxCollisionTetrahedronMeshData_Pod::dump_layout(sg);
-
-    struct physx_PxSimulationTetrahedronMeshData_Pod: public physx::PxSimulationTetrahedronMeshData {
-        static void dump_layout(PodStructGen& sg) {
-            sg.begin_struct("physx_PxSimulationTetrahedronMeshData_Pod", "PxSimulationTetrahedronMeshData");
-            sg.end_struct(sizeof(physx::PxSimulationTetrahedronMeshData));
-        }
-    };
-    physx_PxSimulationTetrahedronMeshData_Pod::dump_layout(sg);
-
     struct physx_PxAggregate_Pod: public physx::PxAggregate {
         static void dump_layout(PodStructGen& sg) {
             sg.begin_struct("physx_PxAggregate_Pod", "PxAggregate");
@@ -3435,6 +3387,95 @@ int main() {
     };
     physx_PxTetrahedronMeshExt_Pod::dump_layout(sg);
 
+    struct physx_PxParticleRigidAttachment_Pod: public physx::PxParticleRigidAttachment {
+        static void dump_layout(PodStructGen& sg) {
+            sg.begin_struct("physx_PxParticleRigidAttachment_Pod", "PxParticleRigidAttachment");
+            sg.add_field("uint64_t mID0", "mID0", "u64", sizeof(uint64_t), unsafe_offsetof(physx_PxParticleRigidAttachment_Pod, mID0));
+            sg.add_field("uint64_t mID1", "mID1", "u64", sizeof(uint64_t), unsafe_offsetof(physx_PxParticleRigidAttachment_Pod, mID1));
+            sg.add_field("physx_PxVec4_Pod mLocalPose0", "mLocalPose0", "PxVec4", sizeof(physx::PxVec4), unsafe_offsetof(physx_PxParticleRigidAttachment_Pod, mLocalPose0));
+            sg.add_field("physx_PxConeLimitParams_Pod mParams", "mParams", "PxConeLimitParams", sizeof(physx::PxConeLimitParams), unsafe_offsetof(physx_PxParticleRigidAttachment_Pod, mParams));
+            sg.end_struct(sizeof(physx::PxParticleRigidAttachment));
+        }
+    };
+    physx_PxParticleRigidAttachment_Pod::dump_layout(sg);
+
+    struct physx_PxParticleBufferDesc_Pod: public physx::PxParticleBufferDesc {
+        static void dump_layout(PodStructGen& sg) {
+            sg.begin_struct("physx_PxParticleBufferDesc_Pod", "PxParticleBufferDesc");
+            sg.add_field("physx_PxVec4_Pod* positions", "positions", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, positions));
+            sg.add_field("physx_PxVec4_Pod* velocities", "velocities", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, velocities));
+            sg.add_field("uint32_t* phases", "phases", "*mut u32", sizeof(uint32_t*), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, phases));
+            sg.add_field("physx_PxParticleVolume_Pod* volumes", "volumes", "*mut PxParticleVolume", sizeof(physx::PxParticleVolume*), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, volumes));
+            sg.add_field("uint32_t numActiveParticles", "numActiveParticles", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, numActiveParticles));
+            sg.add_field("uint32_t maxParticles", "maxParticles", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, maxParticles));
+            sg.add_field("uint32_t numVolumes", "numVolumes", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, numVolumes));
+            sg.add_field("uint32_t maxVolumes", "maxVolumes", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleBufferDesc_Pod, maxVolumes));
+            sg.end_struct(sizeof(physx::PxParticleBufferDesc));
+        }
+    };
+    physx_PxParticleBufferDesc_Pod::dump_layout(sg);
+
+    struct physx_PxParticleAndDiffuseBufferDesc_Pod: public physx::PxParticleAndDiffuseBufferDesc {
+        static void dump_layout(PodStructGen& sg) {
+            sg.begin_struct("physx_PxParticleAndDiffuseBufferDesc_Pod", "PxParticleAndDiffuseBufferDesc");
+            sg.add_field("physx_PxVec4_Pod* positions", "positions", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, positions));
+            sg.add_field("physx_PxVec4_Pod* velocities", "velocities", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, velocities));
+            sg.add_field("uint32_t* phases", "phases", "*mut u32", sizeof(uint32_t*), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, phases));
+            sg.add_field("physx_PxParticleVolume_Pod* volumes", "volumes", "*mut PxParticleVolume", sizeof(physx::PxParticleVolume*), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, volumes));
+            sg.add_field("uint32_t numActiveParticles", "numActiveParticles", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, numActiveParticles));
+            sg.add_field("uint32_t maxParticles", "maxParticles", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, maxParticles));
+            sg.add_field("uint32_t numVolumes", "numVolumes", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, numVolumes));
+            sg.add_field("uint32_t maxVolumes", "maxVolumes", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, maxVolumes));
+            sg.add_field("physx_PxDiffuseParticleParams_Pod diffuseParams", "diffuseParams", "PxDiffuseParticleParams", sizeof(physx::PxDiffuseParticleParams), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, diffuseParams));
+            sg.add_field("uint32_t maxDiffuseParticles", "maxDiffuseParticles", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, maxDiffuseParticles));
+            sg.add_field("uint32_t maxActiveDiffuseParticles", "maxActiveDiffuseParticles", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleAndDiffuseBufferDesc_Pod, maxActiveDiffuseParticles));
+            sg.end_struct(sizeof(physx::PxParticleAndDiffuseBufferDesc));
+        }
+    };
+    physx_PxParticleAndDiffuseBufferDesc_Pod::dump_layout(sg);
+
+    struct physx_PxParticleRigidDesc_Pod: public physx::PxParticleRigidDesc {
+        static void dump_layout(PodStructGen& sg) {
+            sg.begin_struct("physx_PxParticleRigidDesc_Pod", "PxParticleRigidDesc");
+            sg.add_field("uint32_t* rigidOffsets", "rigidOffsets", "*mut u32", sizeof(uint32_t*), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, rigidOffsets));
+            sg.add_field("float* rigidCoefficients", "rigidCoefficients", "*mut f32", sizeof(float*), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, rigidCoefficients));
+            sg.add_field("physx_PxVec4_Pod* rigidTranslations", "rigidTranslations", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, rigidTranslations));
+            sg.add_field("physx_PxQuat_Pod* rigidRotations", "rigidRotations", "*mut PxQuat", sizeof(physx::PxQuat*), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, rigidRotations));
+            sg.add_field("physx_PxVec4_Pod* rigidLocalPositions", "rigidLocalPositions", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, rigidLocalPositions));
+            sg.add_field("physx_PxVec4_Pod* rigidLocalNormals", "rigidLocalNormals", "*mut PxVec4", sizeof(physx::PxVec4*), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, rigidLocalNormals));
+            sg.add_field("uint32_t maxRigids", "maxRigids", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, maxRigids));
+            sg.add_field("uint32_t numActiveRigids", "numActiveRigids", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleRigidDesc_Pod, numActiveRigids));
+            sg.end_struct(sizeof(physx::PxParticleRigidDesc));
+        }
+    };
+    physx_PxParticleRigidDesc_Pod::dump_layout(sg);
+
+    sg.pass_thru("struct physx_PxParticleClothBufferHelper_Pod {\n    void* vtable_;\n};\n");
+    struct physx_PxParticleVolumeMesh_Pod: public physx::PxParticleVolumeMesh {
+        static void dump_layout(PodStructGen& sg) {
+            sg.begin_struct("physx_PxParticleVolumeMesh_Pod", "PxParticleVolumeMesh");
+            sg.add_field("uint32_t startIndex", "startIndex", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleVolumeMesh_Pod, startIndex));
+            sg.add_field("uint32_t count", "count", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleVolumeMesh_Pod, count));
+            sg.end_struct(sizeof(physx::PxParticleVolumeMesh));
+        }
+    };
+    physx_PxParticleVolumeMesh_Pod::dump_layout(sg);
+
+    sg.pass_thru("struct physx_PxParticleVolumeBufferHelper_Pod {\n    void* vtable_;\n};\n");
+    sg.pass_thru("struct physx_PxParticleRigidBufferHelper_Pod {\n    void* vtable_;\n};\n");
+    struct physx_PxParticleClothConstraint_Pod: public physx::PxParticleClothConstraint {
+        static void dump_layout(PodStructGen& sg) {
+            sg.begin_struct("physx_PxParticleClothConstraint_Pod", "PxParticleClothConstraint");
+            sg.add_field("uint32_t particleIndexA", "particleIndexA", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleClothConstraint_Pod, particleIndexA));
+            sg.add_field("uint32_t particleIndexB", "particleIndexB", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleClothConstraint_Pod, particleIndexB));
+            sg.add_field("float length", "length", "f32", sizeof(float), unsafe_offsetof(physx_PxParticleClothConstraint_Pod, length));
+            sg.add_field("uint32_t constraintType", "constraintType", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxParticleClothConstraint_Pod, constraintType));
+            sg.end_struct(sizeof(physx::PxParticleClothConstraint));
+        }
+    };
+    physx_PxParticleClothConstraint_Pod::dump_layout(sg);
+
+    sg.pass_thru("struct physx_PxParticleClothCooker_Pod {\n    void* vtable_;\n};\n");
     struct physx_PxRepXObject_Pod: public physx::PxRepXObject {
         static void dump_layout(PodStructGen& sg) {
             sg.begin_struct("physx_PxRepXObject_Pod", "PxRepXObject");

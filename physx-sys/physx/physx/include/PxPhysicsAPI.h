@@ -221,6 +221,7 @@ Alternatively, one can instead directly #include a subset of the below files.
 //Extensions to the SDK
 #include "extensions/PxDefaultStreams.h"
 #include "extensions/PxExtensionsAPI.h"
+#include "extensions/PxParticleClothCooker.h"
 
 //Serialization
 #include "extensions/PxSerialization.h"

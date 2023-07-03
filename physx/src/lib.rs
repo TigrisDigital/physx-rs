@@ -120,6 +120,7 @@ pub mod controller;
 pub mod controller_manager;
 pub mod convex_mesh;
 pub mod cooking;
+pub mod cuda_context_manager;
 pub mod foundation;
 pub mod geometry;
 pub mod height_field;

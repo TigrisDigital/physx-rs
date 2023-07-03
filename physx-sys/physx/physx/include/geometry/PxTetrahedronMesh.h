@@ -279,7 +279,7 @@ namespace physx
 
 	@see PxTetrahedronMeshData
 	*/
-	class PxCollisionMeshMappingData : public PxUserAllocated
+	class PX_DEPRECATED PxCollisionMeshMappingData : public PxUserAllocated
 	{
 	public:
 		virtual void release() = 0;
@@ -293,7 +293,7 @@ namespace physx
 
 	@see PxTetrahedronMeshData
 	*/
-	class PxSoftBodyCollisionData : public PxUserAllocated
+	class PX_DEPRECATED PxSoftBodyCollisionData : public PxUserAllocated
 	{
 
 	};
@@ -304,7 +304,7 @@ namespace physx
 
 	@see PxTetrahedronMeshData
 	*/
-	class PxTetrahedronMeshData : public PxUserAllocated
+	class PX_DEPRECATED PxTetrahedronMeshData : public PxUserAllocated
 	{
 
 	};
@@ -315,7 +315,7 @@ namespace physx
 
 	@see PxTetrahedronMeshData
 	*/
-	class PxSoftBodySimulationData : public PxUserAllocated
+	class PX_DEPRECATED PxSoftBodySimulationData : public PxUserAllocated
 	{
 
 	};
@@ -326,7 +326,7 @@ namespace physx
 
 	@see PxTetrahedronMeshData PxSoftBodyCollisionData
 	*/
-	class PxCollisionTetrahedronMeshData : public PxUserAllocated
+	class PX_DEPRECATED PxCollisionTetrahedronMeshData : public PxUserAllocated
 	{
 	public:
 		virtual const PxTetrahedronMeshData* getMesh() const = 0;
@@ -344,7 +344,7 @@ namespace physx
 
 	@see PxTetrahedronMeshData PxSoftBodySimulationData
 	*/
-	class PxSimulationTetrahedronMeshData : public PxUserAllocated
+	class PX_DEPRECATED PxSimulationTetrahedronMeshData : public PxUserAllocated
 	{
 	public:
 		virtual PxTetrahedronMeshData* getMesh() = 0;

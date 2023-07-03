@@ -122,12 +122,6 @@ static_assert(sizeof(physx::PxTetrahedron) == sizeof(physx_PxTetrahedron_Pod), "
 static_assert(sizeof(physx::PxSoftBodyAuxData) == sizeof(physx_PxSoftBodyAuxData_Pod), "POD wrapper for `physx::PxSoftBodyAuxData` has incorrect size");
 static_assert(sizeof(physx::PxTetrahedronMesh) == sizeof(physx_PxTetrahedronMesh_Pod), "POD wrapper for `physx::PxTetrahedronMesh` has incorrect size");
 static_assert(sizeof(physx::PxSoftBodyMesh) == sizeof(physx_PxSoftBodyMesh_Pod), "POD wrapper for `physx::PxSoftBodyMesh` has incorrect size");
-static_assert(sizeof(physx::PxCollisionMeshMappingData) == sizeof(physx_PxCollisionMeshMappingData_Pod), "POD wrapper for `physx::PxCollisionMeshMappingData` has incorrect size");
-static_assert(sizeof(physx::PxSoftBodyCollisionData) == sizeof(physx_PxSoftBodyCollisionData_Pod), "POD wrapper for `physx::PxSoftBodyCollisionData` has incorrect size");
-static_assert(sizeof(physx::PxTetrahedronMeshData) == sizeof(physx_PxTetrahedronMeshData_Pod), "POD wrapper for `physx::PxTetrahedronMeshData` has incorrect size");
-static_assert(sizeof(physx::PxSoftBodySimulationData) == sizeof(physx_PxSoftBodySimulationData_Pod), "POD wrapper for `physx::PxSoftBodySimulationData` has incorrect size");
-static_assert(sizeof(physx::PxCollisionTetrahedronMeshData) == sizeof(physx_PxCollisionTetrahedronMeshData_Pod), "POD wrapper for `physx::PxCollisionTetrahedronMeshData` has incorrect size");
-static_assert(sizeof(physx::PxSimulationTetrahedronMeshData) == sizeof(physx_PxSimulationTetrahedronMeshData_Pod), "POD wrapper for `physx::PxSimulationTetrahedronMeshData` has incorrect size");
 static_assert(sizeof(physx::PxAggregate) == sizeof(physx_PxAggregate_Pod), "POD wrapper for `physx::PxAggregate` has incorrect size");
 static_assert(sizeof(physx::PxSpringModifiers) == sizeof(physx_PxSpringModifiers_Pod), "POD wrapper for `physx::PxSpringModifiers` has incorrect size");
 static_assert(sizeof(physx::PxRestitutionModifiers) == sizeof(physx_PxRestitutionModifiers_Pod), "POD wrapper for `physx::PxRestitutionModifiers` has incorrect size");
@@ -340,6 +334,16 @@ static_assert(sizeof(physx::PxSamplingExt) == sizeof(physx_PxSamplingExt_Pod), "
 static_assert(sizeof(physx::PxPoissonSampler) == sizeof(physx_PxPoissonSampler_Pod), "POD wrapper for `physx::PxPoissonSampler` has incorrect size");
 static_assert(sizeof(physx::PxTriangleMeshPoissonSampler) == sizeof(physx_PxTriangleMeshPoissonSampler_Pod), "POD wrapper for `physx::PxTriangleMeshPoissonSampler` has incorrect size");
 static_assert(sizeof(physx::PxTetrahedronMeshExt) == sizeof(physx_PxTetrahedronMeshExt_Pod), "POD wrapper for `physx::PxTetrahedronMeshExt` has incorrect size");
+static_assert(sizeof(physx::PxParticleRigidAttachment) == sizeof(physx_PxParticleRigidAttachment_Pod), "POD wrapper for `physx::PxParticleRigidAttachment` has incorrect size");
+static_assert(sizeof(physx::PxParticleBufferDesc) == sizeof(physx_PxParticleBufferDesc_Pod), "POD wrapper for `physx::PxParticleBufferDesc` has incorrect size");
+static_assert(sizeof(physx::PxParticleAndDiffuseBufferDesc) == sizeof(physx_PxParticleAndDiffuseBufferDesc_Pod), "POD wrapper for `physx::PxParticleAndDiffuseBufferDesc` has incorrect size");
+static_assert(sizeof(physx::PxParticleRigidDesc) == sizeof(physx_PxParticleRigidDesc_Pod), "POD wrapper for `physx::PxParticleRigidDesc` has incorrect size");
+static_assert(sizeof(physx::PxParticleClothBufferHelper) == sizeof(physx_PxParticleClothBufferHelper_Pod), "POD wrapper for `physx::PxParticleClothBufferHelper` has incorrect size");
+static_assert(sizeof(physx::PxParticleVolumeMesh) == sizeof(physx_PxParticleVolumeMesh_Pod), "POD wrapper for `physx::PxParticleVolumeMesh` has incorrect size");
+static_assert(sizeof(physx::PxParticleVolumeBufferHelper) == sizeof(physx_PxParticleVolumeBufferHelper_Pod), "POD wrapper for `physx::PxParticleVolumeBufferHelper` has incorrect size");
+static_assert(sizeof(physx::PxParticleRigidBufferHelper) == sizeof(physx_PxParticleRigidBufferHelper_Pod), "POD wrapper for `physx::PxParticleRigidBufferHelper` has incorrect size");
+static_assert(sizeof(physx::PxParticleClothConstraint) == sizeof(physx_PxParticleClothConstraint_Pod), "POD wrapper for `physx::PxParticleClothConstraint` has incorrect size");
+static_assert(sizeof(physx::PxParticleClothCooker) == sizeof(physx_PxParticleClothCooker_Pod), "POD wrapper for `physx::PxParticleClothCooker` has incorrect size");
 static_assert(sizeof(physx::PxRepXObject) == sizeof(physx_PxRepXObject_Pod), "POD wrapper for `physx::PxRepXObject` has incorrect size");
 static_assert(sizeof(physx::PxRepXInstantiationArgs) == sizeof(physx_PxRepXInstantiationArgs_Pod), "POD wrapper for `physx::PxRepXInstantiationArgs` has incorrect size");
 static_assert(sizeof(physx::PxRepXSerializer) == sizeof(physx_PxRepXSerializer_Pod), "POD wrapper for `physx::PxRepXSerializer` has incorrect size");
@@ -5469,63 +5473,6 @@ extern "C" {
 
     void PxSoftBodyMesh_release_mut(physx_PxSoftBodyMesh_Pod* self__pod) {
         physx::PxSoftBodyMesh* self_ = reinterpret_cast<physx::PxSoftBodyMesh*>(self__pod);
-        self_->release();
-    }
-
-    void PxCollisionMeshMappingData_release_mut(physx_PxCollisionMeshMappingData_Pod* self__pod) {
-        physx::PxCollisionMeshMappingData* self_ = reinterpret_cast<physx::PxCollisionMeshMappingData*>(self__pod);
-        self_->release();
-    }
-
-    physx_PxTetrahedronMeshData_Pod const* PxCollisionTetrahedronMeshData_getMesh(physx_PxCollisionTetrahedronMeshData_Pod const* self__pod) {
-        physx::PxCollisionTetrahedronMeshData const* self_ = reinterpret_cast<physx::PxCollisionTetrahedronMeshData const*>(self__pod);
-        physx::PxTetrahedronMeshData const* return_val = self_->getMesh();
-        auto return_val_pod = reinterpret_cast<physx_PxTetrahedronMeshData_Pod const*>(return_val);
-        return return_val_pod;
-    }
-
-    physx_PxTetrahedronMeshData_Pod* PxCollisionTetrahedronMeshData_getMesh_mut(physx_PxCollisionTetrahedronMeshData_Pod* self__pod) {
-        physx::PxCollisionTetrahedronMeshData* self_ = reinterpret_cast<physx::PxCollisionTetrahedronMeshData*>(self__pod);
-        physx::PxTetrahedronMeshData* return_val = self_->getMesh();
-        auto return_val_pod = reinterpret_cast<physx_PxTetrahedronMeshData_Pod*>(return_val);
-        return return_val_pod;
-    }
-
-    physx_PxSoftBodyCollisionData_Pod const* PxCollisionTetrahedronMeshData_getData(physx_PxCollisionTetrahedronMeshData_Pod const* self__pod) {
-        physx::PxCollisionTetrahedronMeshData const* self_ = reinterpret_cast<physx::PxCollisionTetrahedronMeshData const*>(self__pod);
-        physx::PxSoftBodyCollisionData const* return_val = self_->getData();
-        auto return_val_pod = reinterpret_cast<physx_PxSoftBodyCollisionData_Pod const*>(return_val);
-        return return_val_pod;
-    }
-
-    physx_PxSoftBodyCollisionData_Pod* PxCollisionTetrahedronMeshData_getData_mut(physx_PxCollisionTetrahedronMeshData_Pod* self__pod) {
-        physx::PxCollisionTetrahedronMeshData* self_ = reinterpret_cast<physx::PxCollisionTetrahedronMeshData*>(self__pod);
-        physx::PxSoftBodyCollisionData* return_val = self_->getData();
-        auto return_val_pod = reinterpret_cast<physx_PxSoftBodyCollisionData_Pod*>(return_val);
-        return return_val_pod;
-    }
-
-    void PxCollisionTetrahedronMeshData_release_mut(physx_PxCollisionTetrahedronMeshData_Pod* self__pod) {
-        physx::PxCollisionTetrahedronMeshData* self_ = reinterpret_cast<physx::PxCollisionTetrahedronMeshData*>(self__pod);
-        self_->release();
-    }
-
-    physx_PxTetrahedronMeshData_Pod* PxSimulationTetrahedronMeshData_getMesh_mut(physx_PxSimulationTetrahedronMeshData_Pod* self__pod) {
-        physx::PxSimulationTetrahedronMeshData* self_ = reinterpret_cast<physx::PxSimulationTetrahedronMeshData*>(self__pod);
-        physx::PxTetrahedronMeshData* return_val = self_->getMesh();
-        auto return_val_pod = reinterpret_cast<physx_PxTetrahedronMeshData_Pod*>(return_val);
-        return return_val_pod;
-    }
-
-    physx_PxSoftBodySimulationData_Pod* PxSimulationTetrahedronMeshData_getData_mut(physx_PxSimulationTetrahedronMeshData_Pod* self__pod) {
-        physx::PxSimulationTetrahedronMeshData* self_ = reinterpret_cast<physx::PxSimulationTetrahedronMeshData*>(self__pod);
-        physx::PxSoftBodySimulationData* return_val = self_->getData();
-        auto return_val_pod = reinterpret_cast<physx_PxSoftBodySimulationData_Pod*>(return_val);
-        return return_val_pod;
-    }
-
-    void PxSimulationTetrahedronMeshData_release_mut(physx_PxSimulationTetrahedronMeshData_Pod* self__pod) {
-        physx::PxSimulationTetrahedronMeshData* self_ = reinterpret_cast<physx::PxSimulationTetrahedronMeshData*>(self__pod);
         self_->release();
     }
 
@@ -14174,6 +14121,264 @@ extern "C" {
         return return_val;
     }
 
+    physx_PxParticleBufferDesc_Pod PxParticleBufferDesc_new() {
+        PxParticleBufferDesc return_val;
+        physx_PxParticleBufferDesc_Pod return_val_pod;
+        memcpy(&return_val_pod, &return_val, sizeof(return_val_pod));
+        return return_val_pod;
+    }
+
+    physx_PxParticleAndDiffuseBufferDesc_Pod PxParticleAndDiffuseBufferDesc_new() {
+        PxParticleAndDiffuseBufferDesc return_val;
+        physx_PxParticleAndDiffuseBufferDesc_Pod return_val_pod;
+        memcpy(&return_val_pod, &return_val, sizeof(return_val_pod));
+        return return_val_pod;
+    }
+
+    physx_PxParticleRigidDesc_Pod PxParticleRigidDesc_new() {
+        PxParticleRigidDesc return_val;
+        physx_PxParticleRigidDesc_Pod return_val_pod;
+        memcpy(&return_val_pod, &return_val, sizeof(return_val_pod));
+        return return_val_pod;
+    }
+
+    void PxParticleClothBufferHelper_release_mut(physx_PxParticleClothBufferHelper_Pod* self__pod) {
+        physx::PxParticleClothBufferHelper* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper*>(self__pod);
+        self_->release();
+    }
+
+    uint32_t PxParticleClothBufferHelper_getMaxCloths(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxCloths();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getNumCloths(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumCloths();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getMaxSprings(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxSprings();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getNumSprings(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumSprings();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getMaxTriangles(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxTriangles();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getNumTriangles(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumTriangles();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getMaxParticles(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxParticles();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothBufferHelper_getNumParticles(physx_PxParticleClothBufferHelper_Pod const* self__pod) {
+        physx::PxParticleClothBufferHelper const* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumParticles();
+        return return_val;
+    }
+
+    void PxParticleClothBufferHelper_addCloth_mut(physx_PxParticleClothBufferHelper_Pod* self__pod, physx_PxParticleCloth_Pod const* particleCloth_pod, uint32_t const* triangles, uint32_t numTriangles, physx_PxParticleSpring_Pod const* springs_pod, uint32_t numSprings, physx_PxVec4_Pod const* restPositions_pod, uint32_t numParticles) {
+        physx::PxParticleClothBufferHelper* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper*>(self__pod);
+        physx::PxParticleCloth const& particleCloth = reinterpret_cast<physx::PxParticleCloth const&>(*particleCloth_pod);
+        physx::PxParticleSpring const* springs = reinterpret_cast<physx::PxParticleSpring const*>(springs_pod);
+        physx::PxVec4 const* restPositions = reinterpret_cast<physx::PxVec4 const*>(restPositions_pod);
+        self_->addCloth(particleCloth, triangles, numTriangles, springs, numSprings, restPositions, numParticles);
+    }
+
+    void PxParticleClothBufferHelper_addCloth_mut_1(physx_PxParticleClothBufferHelper_Pod* self__pod, float blendScale, float restVolume, float pressure, uint32_t const* triangles, uint32_t numTriangles, physx_PxParticleSpring_Pod const* springs_pod, uint32_t numSprings, physx_PxVec4_Pod const* restPositions_pod, uint32_t numParticles) {
+        physx::PxParticleClothBufferHelper* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper*>(self__pod);
+        physx::PxParticleSpring const* springs = reinterpret_cast<physx::PxParticleSpring const*>(springs_pod);
+        physx::PxVec4 const* restPositions = reinterpret_cast<physx::PxVec4 const*>(restPositions_pod);
+        self_->addCloth(blendScale, restVolume, pressure, triangles, numTriangles, springs, numSprings, restPositions, numParticles);
+    }
+
+    physx_PxParticleClothDesc_Pod* PxParticleClothBufferHelper_getParticleClothDesc_mut(physx_PxParticleClothBufferHelper_Pod* self__pod) {
+        physx::PxParticleClothBufferHelper* self_ = reinterpret_cast<physx::PxParticleClothBufferHelper*>(self__pod);
+        physx::PxParticleClothDesc& return_val = self_->getParticleClothDesc();
+        auto return_val_pod = reinterpret_cast<physx_PxParticleClothDesc_Pod*>(&return_val);
+        return return_val_pod;
+    }
+
+    void PxParticleVolumeBufferHelper_release_mut(physx_PxParticleVolumeBufferHelper_Pod* self__pod) {
+        physx::PxParticleVolumeBufferHelper* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper*>(self__pod);
+        self_->release();
+    }
+
+    uint32_t PxParticleVolumeBufferHelper_getMaxVolumes(physx_PxParticleVolumeBufferHelper_Pod const* self__pod) {
+        physx::PxParticleVolumeBufferHelper const* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxVolumes();
+        return return_val;
+    }
+
+    uint32_t PxParticleVolumeBufferHelper_getNumVolumes(physx_PxParticleVolumeBufferHelper_Pod const* self__pod) {
+        physx::PxParticleVolumeBufferHelper const* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumVolumes();
+        return return_val;
+    }
+
+    uint32_t PxParticleVolumeBufferHelper_getMaxTriangles(physx_PxParticleVolumeBufferHelper_Pod const* self__pod) {
+        physx::PxParticleVolumeBufferHelper const* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxTriangles();
+        return return_val;
+    }
+
+    uint32_t PxParticleVolumeBufferHelper_getNumTriangles(physx_PxParticleVolumeBufferHelper_Pod const* self__pod) {
+        physx::PxParticleVolumeBufferHelper const* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumTriangles();
+        return return_val;
+    }
+
+    physx_PxParticleVolume_Pod* PxParticleVolumeBufferHelper_getParticleVolumes_mut(physx_PxParticleVolumeBufferHelper_Pod* self__pod) {
+        physx::PxParticleVolumeBufferHelper* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper*>(self__pod);
+        physx::PxParticleVolume* return_val = self_->getParticleVolumes();
+        auto return_val_pod = reinterpret_cast<physx_PxParticleVolume_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleVolumeMesh_Pod* PxParticleVolumeBufferHelper_getParticleVolumeMeshes_mut(physx_PxParticleVolumeBufferHelper_Pod* self__pod) {
+        physx::PxParticleVolumeBufferHelper* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper*>(self__pod);
+        physx::PxParticleVolumeMesh* return_val = self_->getParticleVolumeMeshes();
+        auto return_val_pod = reinterpret_cast<physx_PxParticleVolumeMesh_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    uint32_t* PxParticleVolumeBufferHelper_getTriangles_mut(physx_PxParticleVolumeBufferHelper_Pod* self__pod) {
+        physx::PxParticleVolumeBufferHelper* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper*>(self__pod);
+        uint32_t* return_val = self_->getTriangles();
+        return return_val;
+    }
+
+    void PxParticleVolumeBufferHelper_addVolume_mut(physx_PxParticleVolumeBufferHelper_Pod* self__pod, physx_PxParticleVolume_Pod const* volume_pod, physx_PxParticleVolumeMesh_Pod const* volumeMesh_pod, uint32_t const* triangles, uint32_t numTriangles) {
+        physx::PxParticleVolumeBufferHelper* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper*>(self__pod);
+        physx::PxParticleVolume const& volume = reinterpret_cast<physx::PxParticleVolume const&>(*volume_pod);
+        physx::PxParticleVolumeMesh const& volumeMesh = reinterpret_cast<physx::PxParticleVolumeMesh const&>(*volumeMesh_pod);
+        self_->addVolume(volume, volumeMesh, triangles, numTriangles);
+    }
+
+    void PxParticleVolumeBufferHelper_addVolume_mut_1(physx_PxParticleVolumeBufferHelper_Pod* self__pod, uint32_t particleOffset, uint32_t numParticles, uint32_t const* triangles, uint32_t numTriangles) {
+        physx::PxParticleVolumeBufferHelper* self_ = reinterpret_cast<physx::PxParticleVolumeBufferHelper*>(self__pod);
+        self_->addVolume(particleOffset, numParticles, triangles, numTriangles);
+    }
+
+    void PxParticleRigidBufferHelper_release_mut(physx_PxParticleRigidBufferHelper_Pod* self__pod) {
+        physx::PxParticleRigidBufferHelper* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper*>(self__pod);
+        self_->release();
+    }
+
+    uint32_t PxParticleRigidBufferHelper_getMaxRigids(physx_PxParticleRigidBufferHelper_Pod const* self__pod) {
+        physx::PxParticleRigidBufferHelper const* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxRigids();
+        return return_val;
+    }
+
+    uint32_t PxParticleRigidBufferHelper_getNumRigids(physx_PxParticleRigidBufferHelper_Pod const* self__pod) {
+        physx::PxParticleRigidBufferHelper const* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumRigids();
+        return return_val;
+    }
+
+    uint32_t PxParticleRigidBufferHelper_getMaxParticles(physx_PxParticleRigidBufferHelper_Pod const* self__pod) {
+        physx::PxParticleRigidBufferHelper const* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getMaxParticles();
+        return return_val;
+    }
+
+    uint32_t PxParticleRigidBufferHelper_getNumParticles(physx_PxParticleRigidBufferHelper_Pod const* self__pod) {
+        physx::PxParticleRigidBufferHelper const* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper const*>(self__pod);
+        uint32_t return_val = self_->getNumParticles();
+        return return_val;
+    }
+
+    void PxParticleRigidBufferHelper_addRigid_mut(physx_PxParticleRigidBufferHelper_Pod* self__pod, physx_PxVec3_Pod const* translation_pod, physx_PxQuat_Pod const* rotation_pod, float coefficient, physx_PxVec4_Pod const* localPositions_pod, physx_PxVec4_Pod const* localNormals_pod, uint32_t numParticles) {
+        physx::PxParticleRigidBufferHelper* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper*>(self__pod);
+        physx::PxVec3 const& translation = reinterpret_cast<physx::PxVec3 const&>(*translation_pod);
+        physx::PxQuat const& rotation = reinterpret_cast<physx::PxQuat const&>(*rotation_pod);
+        physx::PxVec4 const* localPositions = reinterpret_cast<physx::PxVec4 const*>(localPositions_pod);
+        physx::PxVec4 const* localNormals = reinterpret_cast<physx::PxVec4 const*>(localNormals_pod);
+        self_->addRigid(translation, rotation, coefficient, localPositions, localNormals, numParticles);
+    }
+
+    physx_PxParticleRigidDesc_Pod* PxParticleRigidBufferHelper_getParticleRigidDesc_mut(physx_PxParticleRigidBufferHelper_Pod* self__pod) {
+        physx::PxParticleRigidBufferHelper* self_ = reinterpret_cast<physx::PxParticleRigidBufferHelper*>(self__pod);
+        physx::PxParticleRigidDesc& return_val = self_->getParticleRigidDesc();
+        auto return_val_pod = reinterpret_cast<physx_PxParticleRigidDesc_Pod*>(&return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleRigidBufferHelper_Pod* phys_PxCreateParticleRigidBufferHelper(uint32_t maxRigids, uint32_t maxParticles, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleRigidBufferHelper* return_val = PxCreateParticleRigidBufferHelper(maxRigids, maxParticles, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleRigidBufferHelper_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleClothBufferHelper_Pod* phys_PxCreateParticleClothBufferHelper(uint32_t maxCloths, uint32_t maxTriangles, uint32_t maxSprings, uint32_t maxParticles, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleClothBufferHelper* return_val = PxCreateParticleClothBufferHelper(maxCloths, maxTriangles, maxSprings, maxParticles, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleClothBufferHelper_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleVolumeBufferHelper_Pod* phys_PxCreateParticleVolumeBufferHelper(uint32_t maxVolumes, uint32_t maxTriangles, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleVolumeBufferHelper* return_val = PxCreateParticleVolumeBufferHelper(maxVolumes, maxTriangles, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleVolumeBufferHelper_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleBuffer_Pod* phys_PxCreateAndPopulateParticleBuffer(physx_PxParticleBufferDesc_Pod const* desc_pod, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxParticleBufferDesc const& desc = reinterpret_cast<physx::PxParticleBufferDesc const&>(*desc_pod);
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleBuffer* return_val = PxCreateAndPopulateParticleBuffer(desc, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleBuffer_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleAndDiffuseBuffer_Pod* phys_PxCreateAndPopulateParticleAndDiffuseBuffer(physx_PxParticleAndDiffuseBufferDesc_Pod const* desc_pod, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxParticleAndDiffuseBufferDesc const& desc = reinterpret_cast<physx::PxParticleAndDiffuseBufferDesc const&>(*desc_pod);
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleAndDiffuseBuffer* return_val = PxCreateAndPopulateParticleAndDiffuseBuffer(desc, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleAndDiffuseBuffer_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleClothBuffer_Pod* phys_PxCreateAndPopulateParticleClothBuffer(physx_PxParticleBufferDesc_Pod const* desc_pod, physx_PxParticleClothDesc_Pod const* clothDesc_pod, physx_PxPartitionedParticleCloth_Pod* output_pod, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxParticleBufferDesc const& desc = reinterpret_cast<physx::PxParticleBufferDesc const&>(*desc_pod);
+        physx::PxParticleClothDesc const& clothDesc = reinterpret_cast<physx::PxParticleClothDesc const&>(*clothDesc_pod);
+        physx::PxPartitionedParticleCloth& output = reinterpret_cast<physx::PxPartitionedParticleCloth&>(*output_pod);
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleClothBuffer* return_val = PxCreateAndPopulateParticleClothBuffer(desc, clothDesc, output, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleClothBuffer_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxParticleRigidBuffer_Pod* phys_PxCreateAndPopulateParticleRigidBuffer(physx_PxParticleBufferDesc_Pod const* desc_pod, physx_PxParticleRigidDesc_Pod const* rigidDesc_pod, physx_PxCudaContextManager_Pod* cudaContextManager_pod) {
+        physx::PxParticleBufferDesc const& desc = reinterpret_cast<physx::PxParticleBufferDesc const&>(*desc_pod);
+        physx::PxParticleRigidDesc const& rigidDesc = reinterpret_cast<physx::PxParticleRigidDesc const&>(*rigidDesc_pod);
+        physx::PxCudaContextManager* cudaContextManager = reinterpret_cast<physx::PxCudaContextManager*>(cudaContextManager_pod);
+        physx::PxParticleRigidBuffer* return_val = PxCreateAndPopulateParticleRigidBuffer(desc, rigidDesc, cudaContextManager);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleRigidBuffer_Pod*>(return_val);
+        return return_val_pod;
+    }
+
     bool phys_PxInitExtensions(physx_PxPhysics_Pod* physics_pod, physx_PxPvd_Pod* pvd_pod) {
         physx::PxPhysics& physics = reinterpret_cast<physx::PxPhysics&>(*physics_pod);
         physx::PxPvd* pvd = reinterpret_cast<physx::PxPvd*>(pvd_pod);
@@ -14183,6 +14388,62 @@ extern "C" {
 
     void phys_PxCloseExtensions() {
         PxCloseExtensions();
+    }
+
+    void PxParticleClothCooker_release_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        self_->release();
+    }
+
+    void PxParticleClothCooker_cookConstraints_mut(physx_PxParticleClothCooker_Pod* self__pod, physx_PxParticleClothConstraint_Pod const* constraints_pod, uint32_t numConstraints) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        physx::PxParticleClothConstraint const* constraints = reinterpret_cast<physx::PxParticleClothConstraint const*>(constraints_pod);
+        self_->cookConstraints(constraints, numConstraints);
+    }
+
+    uint32_t* PxParticleClothCooker_getTriangleIndices_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        uint32_t* return_val = self_->getTriangleIndices();
+        return return_val;
+    }
+
+    uint32_t PxParticleClothCooker_getTriangleIndicesCount_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        uint32_t return_val = self_->getTriangleIndicesCount();
+        return return_val;
+    }
+
+    physx_PxParticleClothConstraint_Pod* PxParticleClothCooker_getConstraints_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        physx::PxParticleClothConstraint* return_val = self_->getConstraints();
+        auto return_val_pod = reinterpret_cast<physx_PxParticleClothConstraint_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    uint32_t PxParticleClothCooker_getConstraintCount_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        uint32_t return_val = self_->getConstraintCount();
+        return return_val;
+    }
+
+    void PxParticleClothCooker_calculateMeshVolume_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        self_->calculateMeshVolume();
+    }
+
+    float PxParticleClothCooker_getMeshVolume_mut(physx_PxParticleClothCooker_Pod* self__pod) {
+        physx::PxParticleClothCooker* self_ = reinterpret_cast<physx::PxParticleClothCooker*>(self__pod);
+        float return_val = self_->getMeshVolume();
+        return return_val;
+    }
+
+    physx_PxParticleClothCooker_Pod* phys_PxCreateParticleClothCooker(uint32_t vertexCount, physx_PxVec4_Pod* inVertices_pod, uint32_t triangleIndexCount, uint32_t* inTriangleIndices, uint32_t constraintTypeFlags, physx_PxVec3_Pod verticalDirection_pod, float bendingConstraintMaxAngle) {
+        physx::PxVec4* inVertices = reinterpret_cast<physx::PxVec4*>(inVertices_pod);
+        physx::PxVec3 verticalDirection;
+        memcpy(&verticalDirection, &verticalDirection_pod, sizeof(verticalDirection));
+        physx::PxParticleClothCooker* return_val = PxCreateParticleClothCooker(vertexCount, inVertices, triangleIndexCount, inTriangleIndices, constraintTypeFlags, verticalDirection, bendingConstraintMaxAngle);
+        auto return_val_pod = reinterpret_cast<physx_PxParticleClothCooker_Pod*>(return_val);
+        return return_val_pod;
     }
 
     physx_PxRepXObject_Pod PxRepXObject_new(char const* inTypeName, void const* inSerializable, uint64_t inId) {

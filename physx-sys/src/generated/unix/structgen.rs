@@ -677,42 +677,6 @@ pub struct PxSoftBodyMesh {
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
-pub struct PxCollisionMeshMappingData {
-    pub structgen_pad0: [u8; 8],
-}
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
-pub struct PxSoftBodyCollisionData {
-    pub structgen_pad0: [u8; 1],
-}
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
-pub struct PxTetrahedronMeshData {
-    pub structgen_pad0: [u8; 1],
-}
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
-pub struct PxSoftBodySimulationData {
-    pub structgen_pad0: [u8; 1],
-}
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
-pub struct PxCollisionTetrahedronMeshData {
-    pub structgen_pad0: [u8; 8],
-}
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
-pub struct PxSimulationTetrahedronMeshData {
-    pub structgen_pad0: [u8; 8],
-}
-#[derive(Clone, Copy)]
-#[cfg_attr(feature = "debug-structs", derive(Debug))]
-#[repr(C)]
 pub struct PxAggregate {
     pub structgen_pad0: [u8; 16],
     pub userData: *mut std::ffi::c_void,
@@ -2667,6 +2631,73 @@ pub struct PxTetrahedronMeshExt {
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
+pub struct PxParticleRigidAttachment {
+    pub mID0: u64,
+    pub mID1: u64,
+    pub mLocalPose0: PxVec4,
+    pub mParams: PxConeLimitParams,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleBufferDesc {
+    pub positions: *mut PxVec4,
+    pub velocities: *mut PxVec4,
+    pub phases: *mut u32,
+    pub volumes: *mut PxParticleVolume,
+    pub numActiveParticles: u32,
+    pub maxParticles: u32,
+    pub numVolumes: u32,
+    pub maxVolumes: u32,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleAndDiffuseBufferDesc {
+    pub positions: *mut PxVec4,
+    pub velocities: *mut PxVec4,
+    pub phases: *mut u32,
+    pub volumes: *mut PxParticleVolume,
+    pub numActiveParticles: u32,
+    pub maxParticles: u32,
+    pub numVolumes: u32,
+    pub maxVolumes: u32,
+    pub diffuseParams: PxDiffuseParticleParams,
+    pub maxDiffuseParticles: u32,
+    pub maxActiveDiffuseParticles: u32,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleRigidDesc {
+    pub rigidOffsets: *mut u32,
+    pub rigidCoefficients: *mut f32,
+    pub rigidTranslations: *mut PxVec4,
+    pub rigidRotations: *mut PxQuat,
+    pub rigidLocalPositions: *mut PxVec4,
+    pub rigidLocalNormals: *mut PxVec4,
+    pub maxRigids: u32,
+    pub numActiveRigids: u32,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleVolumeMesh {
+    pub startIndex: u32,
+    pub count: u32,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleClothConstraint {
+    pub particleIndexA: u32,
+    pub particleIndexB: u32,
+    pub length: f32,
+    pub constraintType: u32,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
 pub struct PxRepXObject {
     pub typeName: *const std::ffi::c_char,
     pub serializable: *const std::ffi::c_void,
@@ -2776,12 +2807,6 @@ mod sizes {
         assert_eq!(size_of::<PxSoftBodyAuxData>(), 16);
         assert_eq!(size_of::<PxTetrahedronMesh>(), 16);
         assert_eq!(size_of::<PxSoftBodyMesh>(), 16);
-        assert_eq!(size_of::<PxCollisionMeshMappingData>(), 8);
-        assert_eq!(size_of::<PxSoftBodyCollisionData>(), 1);
-        assert_eq!(size_of::<PxTetrahedronMeshData>(), 1);
-        assert_eq!(size_of::<PxSoftBodySimulationData>(), 1);
-        assert_eq!(size_of::<PxCollisionTetrahedronMeshData>(), 8);
-        assert_eq!(size_of::<PxSimulationTetrahedronMeshData>(), 8);
         assert_eq!(size_of::<PxAggregate>(), 24);
         assert_eq!(size_of::<PxSpringModifiers>(), 16);
         assert_eq!(size_of::<PxRestitutionModifiers>(), 16);
@@ -2959,6 +2984,12 @@ mod sizes {
         assert_eq!(size_of::<PxPoissonSampler>(), 8);
         assert_eq!(size_of::<PxTriangleMeshPoissonSampler>(), 8);
         assert_eq!(size_of::<PxTetrahedronMeshExt>(), 1);
+        assert_eq!(size_of::<PxParticleRigidAttachment>(), 64);
+        assert_eq!(size_of::<PxParticleBufferDesc>(), 48);
+        assert_eq!(size_of::<PxParticleAndDiffuseBufferDesc>(), 96);
+        assert_eq!(size_of::<PxParticleRigidDesc>(), 56);
+        assert_eq!(size_of::<PxParticleVolumeMesh>(), 8);
+        assert_eq!(size_of::<PxParticleClothConstraint>(), 16);
         assert_eq!(size_of::<PxRepXObject>(), 24);
         assert_eq!(size_of::<PxRepXInstantiationArgs>(), 24);
     }

@@ -231,9 +231,10 @@ struct PxSceneFlag
 		*/
 		eEXCLUDE_KINEMATICS_FROM_ACTIVE_ACTORS = (1 << 12),
 
-		/*\brief Enables the GPU dynamics pipeline
+		/**
+		\brief Enables the GPU dynamics pipeline
 
-		When set to true, a CUDA ARCH 3.0 or above-enabled NVIDIA GPU is present and the CUDA context manager has been configured, this will run the GPU dynamics pipelin instead of the CPU dynamics pipeline.
+		When set to true, a CUDA ARCH 3.0 or above-enabled NVIDIA GPU is present and the CUDA context manager has been configured, this will run the GPU dynamics pipeline instead of the CPU dynamics pipeline.
 
 		Note that this flag is not mutable and must be set in PxSceneDesc at scene creation.
 		*/
@@ -278,13 +279,13 @@ struct PxSceneFlag
 		*/
 		eENABLE_FRICTION_EVERY_ITERATION = (1 << 15),
 
-		/*
+		/**
 		\brief Disables GPU readback of articulation data when running on GPU.
 		Useful if your application only needs to communicate to the GPU via GPU buffers. Can be significantly faster
 		*/
 		eSUPPRESS_READBACK = (1<<16),
 
-		/*
+		/**
 		\brief Forces GPU readback of articulation data when user raise eSUPPRESS_READBACK.
 		*/
 		eFORCE_READBACK = (1 << 17),

@@ -746,8 +746,6 @@ pub enum PxPairFilteringMode {
     Suppress = 1,
     /// Don't output pair from BP. Cannot be later switched to regular interaction, needs "resetFiltering" call.
     Kill = 2,
-    // Default is eSUPPRESS for compatibility with previous PhysX versions.
-    //Default = 1,
 }
 
 /// Identifies dirty particle buffers that need to be updated in the particle system.
@@ -1896,7 +1894,6 @@ bitflags::bitflags! {
         const Postfilter = 1 << 3;
         const AnyHit = 1 << 4;
         const NoBlock = 1 << 5;
-        const BatchQueryLegacyBehaviour = 1 << 6;
         const DisableHardcodedFilter = 1 << 6;
         const Reserved = 1 << 15;
     }
@@ -2250,15 +2247,11 @@ pub enum PxSceneFlag {
     /// Default:
     /// false
     ExcludeKinematicsFromActiveActors = 4096,
-    /// Do not report kinematics in list of active actors.
+    /// Enables the GPU dynamics pipeline
     ///
-    /// Since the target pose for kinematics is set by the user, an application can track the activity state directly and use
-    /// this flag to avoid that kinematics get added to the list of active actors.
+    /// When set to true, a CUDA ARCH 3.0 or above-enabled NVIDIA GPU is present and the CUDA context manager has been configured, this will run the GPU dynamics pipeline instead of the CPU dynamics pipeline.
     ///
-    /// This flag has only an effect in combination with eENABLE_ACTIVE_ACTORS.
-    ///
-    /// Default:
-    /// false
+    /// Note that this flag is not mutable and must be set in PxSceneDesc at scene creation.
     EnableGpuDynamics = 8192,
     /// Provides improved determinism at the expense of performance.
     ///
@@ -2294,44 +2287,12 @@ pub enum PxSceneFlag {
     ///
     /// This flag only has effect with the default solver. The TGS solver always performs friction per-iteration.
     EnableFrictionEveryIteration = 32768,
-    /// Controls processing friction in all solver iterations
-    ///
-    /// By default, PhysX processes friction only in the final 3 position iterations, and all velocity
-    /// iterations. This flag enables friction processing in all position and velocity iterations.
-    ///
-    /// The default behaviour provides a good trade-off between performance and stability and is aimed
-    /// primarily at game development.
-    ///
-    /// When simulating more complex frictional behaviour, such as grasping of complex geometries with
-    /// a robotic manipulator, better results can be achieved by enabling friction in all solver iterations.
-    ///
-    /// This flag only has effect with the default solver. The TGS solver always performs friction per-iteration.
+    /// Disables GPU readback of articulation data when running on GPU.
+    /// Useful if your application only needs to communicate to the GPU via GPU buffers. Can be significantly faster
     SuppressReadback = 65536,
-    /// Controls processing friction in all solver iterations
-    ///
-    /// By default, PhysX processes friction only in the final 3 position iterations, and all velocity
-    /// iterations. This flag enables friction processing in all position and velocity iterations.
-    ///
-    /// The default behaviour provides a good trade-off between performance and stability and is aimed
-    /// primarily at game development.
-    ///
-    /// When simulating more complex frictional behaviour, such as grasping of complex geometries with
-    /// a robotic manipulator, better results can be achieved by enabling friction in all solver iterations.
-    ///
-    /// This flag only has effect with the default solver. The TGS solver always performs friction per-iteration.
+    /// Forces GPU readback of articulation data when user raise eSUPPRESS_READBACK.
     ForceReadback = 131072,
-    /// Controls processing friction in all solver iterations
-    ///
-    /// By default, PhysX processes friction only in the final 3 position iterations, and all velocity
-    /// iterations. This flag enables friction processing in all position and velocity iterations.
-    ///
-    /// The default behaviour provides a good trade-off between performance and stability and is aimed
-    /// primarily at game development.
-    ///
-    /// When simulating more complex frictional behaviour, such as grasping of complex geometries with
-    /// a robotic manipulator, better results can be achieved by enabling friction in all solver iterations.
-    ///
-    /// This flag only has effect with the default solver. The TGS solver always performs friction per-iteration.
+    /// Forces GPU readback of articulation data when user raise eSUPPRESS_READBACK.
     MutableFlags = 69633,
 }
 
@@ -3819,12 +3780,6 @@ pub struct PxLockedData {
     vtable_: *const std::ffi::c_void,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct PxParticleRigidAttachment {
-    _unused: [u8; 0],
-}
-
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
@@ -4023,6 +3978,34 @@ pub struct PxCustomSceneQuerySystem {
 #[cfg_attr(feature = "debug-structs", derive(Debug))]
 #[repr(C)]
 pub struct PxCustomSceneQuerySystemAdapter {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleClothBufferHelper {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleVolumeBufferHelper {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleRigidBufferHelper {
+    vtable_: *const std::ffi::c_void,
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "debug-structs", derive(Debug))]
+#[repr(C)]
+pub struct PxParticleClothCooker {
     vtable_: *const std::ffi::c_void,
 }
 
@@ -7184,24 +7167,6 @@ extern "C" {
 
     /// Decrements the reference count of a tetrahedron mesh and releases it if the new reference count is zero.
     pub fn PxSoftBodyMesh_release_mut(self_: *mut PxSoftBodyMesh);
-
-    pub fn PxCollisionMeshMappingData_release_mut(self_: *mut PxCollisionMeshMappingData);
-
-    pub fn PxCollisionTetrahedronMeshData_getMesh(self_: *const PxCollisionTetrahedronMeshData) -> *const PxTetrahedronMeshData;
-
-    pub fn PxCollisionTetrahedronMeshData_getMesh_mut(self_: *mut PxCollisionTetrahedronMeshData) -> *mut PxTetrahedronMeshData;
-
-    pub fn PxCollisionTetrahedronMeshData_getData(self_: *const PxCollisionTetrahedronMeshData) -> *const PxSoftBodyCollisionData;
-
-    pub fn PxCollisionTetrahedronMeshData_getData_mut(self_: *mut PxCollisionTetrahedronMeshData) -> *mut PxSoftBodyCollisionData;
-
-    pub fn PxCollisionTetrahedronMeshData_release_mut(self_: *mut PxCollisionTetrahedronMeshData);
-
-    pub fn PxSimulationTetrahedronMeshData_getMesh_mut(self_: *mut PxSimulationTetrahedronMeshData) -> *mut PxTetrahedronMeshData;
-
-    pub fn PxSimulationTetrahedronMeshData_getData_mut(self_: *mut PxSimulationTetrahedronMeshData) -> *mut PxSoftBodySimulationData;
-
-    pub fn PxSimulationTetrahedronMeshData_release_mut(self_: *mut PxSimulationTetrahedronMeshData);
 
     pub fn phys_PxGetAggregateFilterHint(type_: PxAggregateType, enableSelfCollision: bool) -> u32;
 
@@ -15312,6 +15277,119 @@ extern "C" {
     /// The index of the tetrahedon closest to the point
     pub fn PxTetrahedronMeshExt_findTetrahedronClosestToPoint(mesh: *const PxTetrahedronMesh, point: *const PxVec3, bary: *mut PxVec4) -> i32;
 
+    pub fn PxParticleBufferDesc_new() -> PxParticleBufferDesc;
+
+    pub fn PxParticleAndDiffuseBufferDesc_new() -> PxParticleAndDiffuseBufferDesc;
+
+    pub fn PxParticleRigidDesc_new() -> PxParticleRigidDesc;
+
+    pub fn PxParticleClothBufferHelper_release_mut(self_: *mut PxParticleClothBufferHelper);
+
+    pub fn PxParticleClothBufferHelper_getMaxCloths(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getNumCloths(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getMaxSprings(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getNumSprings(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getMaxTriangles(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getNumTriangles(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getMaxParticles(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    pub fn PxParticleClothBufferHelper_getNumParticles(self_: *const PxParticleClothBufferHelper) -> u32;
+
+    /// Adds a PxParticleCloth to this PxParticleClothBufferHelper instance.
+    pub fn PxParticleClothBufferHelper_addCloth_mut(self_: *mut PxParticleClothBufferHelper, particleCloth: *const PxParticleCloth, triangles: *const u32, numTriangles: u32, springs: *const PxParticleSpring, numSprings: u32, restPositions: *const PxVec4, numParticles: u32);
+
+    /// Adds a cloth to this PxParticleClothBufferHelper instance.
+    ///
+    /// Adds a cloth to this PxParticleClothBufferHelper instance. With this method the relevant parameters for inflatable simulation
+    /// (restVolume, pressure) can be set directly.
+    pub fn PxParticleClothBufferHelper_addCloth_mut_1(self_: *mut PxParticleClothBufferHelper, blendScale: f32, restVolume: f32, pressure: f32, triangles: *const u32, numTriangles: u32, springs: *const PxParticleSpring, numSprings: u32, restPositions: *const PxVec4, numParticles: u32);
+
+    /// Returns a PxParticleClothDesc for this PxParticleClothBufferHelper instance to be used for spring partitioning.
+    ///
+    /// the PxParticleClothDesc.
+    pub fn PxParticleClothBufferHelper_getParticleClothDesc_mut(self_: *mut PxParticleClothBufferHelper) -> *mut PxParticleClothDesc;
+
+    pub fn PxParticleVolumeBufferHelper_release_mut(self_: *mut PxParticleVolumeBufferHelper);
+
+    pub fn PxParticleVolumeBufferHelper_getMaxVolumes(self_: *const PxParticleVolumeBufferHelper) -> u32;
+
+    pub fn PxParticleVolumeBufferHelper_getNumVolumes(self_: *const PxParticleVolumeBufferHelper) -> u32;
+
+    pub fn PxParticleVolumeBufferHelper_getMaxTriangles(self_: *const PxParticleVolumeBufferHelper) -> u32;
+
+    pub fn PxParticleVolumeBufferHelper_getNumTriangles(self_: *const PxParticleVolumeBufferHelper) -> u32;
+
+    pub fn PxParticleVolumeBufferHelper_getParticleVolumes_mut(self_: *mut PxParticleVolumeBufferHelper) -> *mut PxParticleVolume;
+
+    pub fn PxParticleVolumeBufferHelper_getParticleVolumeMeshes_mut(self_: *mut PxParticleVolumeBufferHelper) -> *mut PxParticleVolumeMesh;
+
+    pub fn PxParticleVolumeBufferHelper_getTriangles_mut(self_: *mut PxParticleVolumeBufferHelper) -> *mut u32;
+
+    /// Adds a PxParticleVolume with a PxParticleVolumeMesh
+    pub fn PxParticleVolumeBufferHelper_addVolume_mut(self_: *mut PxParticleVolumeBufferHelper, volume: *const PxParticleVolume, volumeMesh: *const PxParticleVolumeMesh, triangles: *const u32, numTriangles: u32);
+
+    /// Adds a volume
+    pub fn PxParticleVolumeBufferHelper_addVolume_mut_1(self_: *mut PxParticleVolumeBufferHelper, particleOffset: u32, numParticles: u32, triangles: *const u32, numTriangles: u32);
+
+    pub fn PxParticleRigidBufferHelper_release_mut(self_: *mut PxParticleRigidBufferHelper);
+
+    pub fn PxParticleRigidBufferHelper_getMaxRigids(self_: *const PxParticleRigidBufferHelper) -> u32;
+
+    pub fn PxParticleRigidBufferHelper_getNumRigids(self_: *const PxParticleRigidBufferHelper) -> u32;
+
+    pub fn PxParticleRigidBufferHelper_getMaxParticles(self_: *const PxParticleRigidBufferHelper) -> u32;
+
+    pub fn PxParticleRigidBufferHelper_getNumParticles(self_: *const PxParticleRigidBufferHelper) -> u32;
+
+    /// Adds a rigid.
+    pub fn PxParticleRigidBufferHelper_addRigid_mut(self_: *mut PxParticleRigidBufferHelper, translation: *const PxVec3, rotation: *const PxQuat, coefficient: f32, localPositions: *const PxVec4, localNormals: *const PxVec4, numParticles: u32);
+
+    /// Get the PxParticleRigidDesc for this buffer.
+    ///
+    /// A PxParticleRigidDesc.
+    pub fn PxParticleRigidBufferHelper_getParticleRigidDesc_mut(self_: *mut PxParticleRigidBufferHelper) -> *mut PxParticleRigidDesc;
+
+    /// Creates a PxParticleRigidBufferHelper.
+    ///
+    /// A pointer to the new PxParticleRigidBufferHelper.
+    pub fn phys_PxCreateParticleRigidBufferHelper(maxRigids: u32, maxParticles: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleRigidBufferHelper;
+
+    /// Creates a PxParticleClothBufferHelper helper.
+    ///
+    /// A pointer to the PxParticleClothBufferHelper that was created.
+    pub fn phys_PxCreateParticleClothBufferHelper(maxCloths: u32, maxTriangles: u32, maxSprings: u32, maxParticles: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleClothBufferHelper;
+
+    /// Creates a PxParticleVolumeBufferHelper.
+    ///
+    /// A pointer to the new PxParticleVolumeBufferHelper.
+    pub fn phys_PxCreateParticleVolumeBufferHelper(maxVolumes: u32, maxTriangles: u32, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleVolumeBufferHelper;
+
+    /// Creates and populates a particle buffer
+    ///
+    /// A fully populated particle buffer ready to use
+    pub fn phys_PxCreateAndPopulateParticleBuffer(desc: *const PxParticleBufferDesc, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleBuffer;
+
+    /// Creates and populates a particle buffer that includes support for diffuse particles
+    ///
+    /// A fully populated particle buffer ready to use
+    pub fn phys_PxCreateAndPopulateParticleAndDiffuseBuffer(desc: *const PxParticleAndDiffuseBufferDesc, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleAndDiffuseBuffer;
+
+    /// Creates and populates a particle cloth buffer
+    ///
+    /// A fully populated particle cloth buffer ready to use
+    pub fn phys_PxCreateAndPopulateParticleClothBuffer(desc: *const PxParticleBufferDesc, clothDesc: *const PxParticleClothDesc, output: *mut PxPartitionedParticleCloth, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleClothBuffer;
+
+    /// Creates and populates a particle rigid buffer. Particle rigids are particles that try to keep their relative positions. They are a bit commpressible similar to softbodies.
+    ///
+    /// A fully populated particle rigid buffer ready to use
+    pub fn phys_PxCreateAndPopulateParticleRigidBuffer(desc: *const PxParticleBufferDesc, rigidDesc: *const PxParticleRigidDesc, cudaContextManager: *mut PxCudaContextManager) -> *mut PxParticleRigidBuffer;
+
     /// Initialize the PhysXExtensions library.
     ///
     /// This should be called before calling any functions or methods in extensions which may require allocation.
@@ -15325,6 +15403,28 @@ extern "C" {
     ///
     /// This function is required to be called to release foundation usage.
     pub fn phys_PxCloseExtensions();
+
+    pub fn PxParticleClothCooker_release_mut(self_: *mut PxParticleClothCooker);
+
+    /// Generate the constraint list and triangle index list.
+    pub fn PxParticleClothCooker_cookConstraints_mut(self_: *mut PxParticleClothCooker, constraints: *const PxParticleClothConstraint, numConstraints: u32);
+
+    pub fn PxParticleClothCooker_getTriangleIndices_mut(self_: *mut PxParticleClothCooker) -> *mut u32;
+
+    pub fn PxParticleClothCooker_getTriangleIndicesCount_mut(self_: *mut PxParticleClothCooker) -> u32;
+
+    pub fn PxParticleClothCooker_getConstraints_mut(self_: *mut PxParticleClothCooker) -> *mut PxParticleClothConstraint;
+
+    pub fn PxParticleClothCooker_getConstraintCount_mut(self_: *mut PxParticleClothCooker) -> u32;
+
+    pub fn PxParticleClothCooker_calculateMeshVolume_mut(self_: *mut PxParticleClothCooker);
+
+    pub fn PxParticleClothCooker_getMeshVolume_mut(self_: *mut PxParticleClothCooker) -> f32;
+
+    /// Creates a PxParticleClothCooker.
+    ///
+    /// A pointer to the new PxParticleClothCooker.
+    pub fn phys_PxCreateParticleClothCooker(vertexCount: u32, inVertices: *mut PxVec4, triangleIndexCount: u32, inTriangleIndices: *mut u32, constraintTypeFlags: u32, verticalDirection: PxVec3, bendingConstraintMaxAngle: f32) -> *mut PxParticleClothCooker;
 
     pub fn PxRepXObject_new(inTypeName: *const std::ffi::c_char, inSerializable: *const std::ffi::c_void, inId: u64) -> PxRepXObject;
 

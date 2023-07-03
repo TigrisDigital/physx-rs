@@ -78,6 +78,17 @@ use physx_sys::{
     PxTriangleMeshGeometry,
 };
 
+// Particle systems
+#[rustfmt::skip]
+use physx_sys::{
+    PxPBDParticleSystem,
+    PxParticleSystem,
+    PxPBDMaterial,
+    PxParticleMaterial,
+    PxParticleAndDiffuseBuffer,
+    PxParticleBuffer,
+};
+
 // Misc
 use physx_sys::PxArticulationCache;
 
@@ -187,6 +198,10 @@ DeriveClass!(PxMaterial: PxRefCounted, PxBase);
 DeriveClass!(PxPruningStructure: PxBase);
 DeriveClass!(PxShape: PxRefCounted, PxBase);
 DeriveClass!(PxTriangleMesh: PxBase);
+DeriveClass!(PxPBDParticleSystem: PxParticleSystem, PxActor);
+DeriveClass!(PxParticleSystem: PxActor);
+DeriveClass!(PxPBDMaterial: PxParticleMaterial);
+DeriveClass!(PxParticleAndDiffuseBuffer: PxParticleBuffer);
 
 DeriveClass!(PxFoundation);
 DeriveClass!(PxPhysics);

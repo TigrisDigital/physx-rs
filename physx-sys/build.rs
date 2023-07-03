@@ -258,6 +258,9 @@ fn physx(ctx: &mut Context) {
         &["PxGpu", "PxPhysXGpuModuleLoader"],
     );
 
+    let sources = include!("sources/physxextensions");
+    ctx.add_sources("source/physxextensions/src", &sources);
+
     ctx.add_sources(
         "source/physx/src/device/linux",
         &["PhysXIndicatorLinux"],
@@ -313,7 +316,9 @@ fn add_common(ctx: &mut Context) {
             "include/cudamanager",
             "source/physxgpu/include",
             "include/gpu",
-            "source/physx/src/device"
+            "source/physx/src/device",
+            "include/extensions",
+            "source/physxextensions/src"
             //"source/physx/src/gpu"
         ]
         .iter()

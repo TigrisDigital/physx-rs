@@ -289,6 +289,16 @@ pub type ErrorCallback =
 pub type AssertHandler = unsafe extern "C" fn(*const i8, *const i8, u32, *mut bool, *const c_void);
 
 extern "C" {
+    pub fn alloc_pinned_host_buffer_pxu32(
+        cuda_context_manager: *mut PxCudaContextManager,
+        num_elements: u32,
+    ) -> *mut u32;
+
+    pub fn alloc_pinned_host_buffer_pxvec4(
+        cuda_context_manager: *mut PxCudaContextManager,
+        num_elements: u32,
+    ) -> *mut PxVec4;
+
     pub fn physx_create_cuda_context_manager(
         foundation: *mut PxFoundation,
         desc: *const PxCudaContextManagerDesc,

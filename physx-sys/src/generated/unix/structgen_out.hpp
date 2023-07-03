@@ -584,24 +584,6 @@ struct physx_PxTetrahedronMesh_Pod {
 struct physx_PxSoftBodyMesh_Pod {
     char structgen_pad0[16];
 };
-struct physx_PxCollisionMeshMappingData_Pod {
-    char structgen_pad0[8];
-};
-struct physx_PxSoftBodyCollisionData_Pod {
-    char structgen_pad0[1];
-};
-struct physx_PxTetrahedronMeshData_Pod {
-    char structgen_pad0[1];
-};
-struct physx_PxSoftBodySimulationData_Pod {
-    char structgen_pad0[1];
-};
-struct physx_PxCollisionTetrahedronMeshData_Pod {
-    char structgen_pad0[8];
-};
-struct physx_PxSimulationTetrahedronMeshData_Pod {
-    char structgen_pad0[8];
-};
 struct physx_PxAggregate_Pod {
     char structgen_pad0[16];
     void* userData;
@@ -2157,6 +2139,67 @@ struct physx_PxTriangleMeshPoissonSampler_Pod {
 };
 struct physx_PxTetrahedronMeshExt_Pod {
     char structgen_pad0[1];
+};
+struct physx_PxParticleRigidAttachment_Pod {
+    uint64_t mID0;
+    uint64_t mID1;
+    physx_PxVec4_Pod mLocalPose0;
+    physx_PxConeLimitParams_Pod mParams;
+};
+struct physx_PxParticleBufferDesc_Pod {
+    physx_PxVec4_Pod* positions;
+    physx_PxVec4_Pod* velocities;
+    uint32_t* phases;
+    physx_PxParticleVolume_Pod* volumes;
+    uint32_t numActiveParticles;
+    uint32_t maxParticles;
+    uint32_t numVolumes;
+    uint32_t maxVolumes;
+};
+struct physx_PxParticleAndDiffuseBufferDesc_Pod {
+    physx_PxVec4_Pod* positions;
+    physx_PxVec4_Pod* velocities;
+    uint32_t* phases;
+    physx_PxParticleVolume_Pod* volumes;
+    uint32_t numActiveParticles;
+    uint32_t maxParticles;
+    uint32_t numVolumes;
+    uint32_t maxVolumes;
+    physx_PxDiffuseParticleParams_Pod diffuseParams;
+    uint32_t maxDiffuseParticles;
+    uint32_t maxActiveDiffuseParticles;
+};
+struct physx_PxParticleRigidDesc_Pod {
+    uint32_t* rigidOffsets;
+    float* rigidCoefficients;
+    physx_PxVec4_Pod* rigidTranslations;
+    physx_PxQuat_Pod* rigidRotations;
+    physx_PxVec4_Pod* rigidLocalPositions;
+    physx_PxVec4_Pod* rigidLocalNormals;
+    uint32_t maxRigids;
+    uint32_t numActiveRigids;
+};
+struct physx_PxParticleClothBufferHelper_Pod {
+    void* vtable_;
+};
+struct physx_PxParticleVolumeMesh_Pod {
+    uint32_t startIndex;
+    uint32_t count;
+};
+struct physx_PxParticleVolumeBufferHelper_Pod {
+    void* vtable_;
+};
+struct physx_PxParticleRigidBufferHelper_Pod {
+    void* vtable_;
+};
+struct physx_PxParticleClothConstraint_Pod {
+    uint32_t particleIndexA;
+    uint32_t particleIndexB;
+    float length;
+    uint32_t constraintType;
+};
+struct physx_PxParticleClothCooker_Pod {
+    void* vtable_;
 };
 struct physx_PxRepXObject_Pod {
     char const* typeName;

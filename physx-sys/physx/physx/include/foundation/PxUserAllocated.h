@@ -39,7 +39,7 @@ namespace physx
 	Provides new and delete using a UserAllocator.
 	Guarantees that 'delete x;' uses the UserAllocator too.
 	*/
-	class PxUserAllocated
+    class PxUserAllocated
 	{
 	public:
 		// PX_SERIALIZATION

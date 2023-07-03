@@ -40,9 +40,6 @@ namespace physx
 {
 #endif
 
-namespace ExtGpu
-{
-
 /**
 \brief Holds all the information for a particle cloth constraint used in the PxParticleClothCooker.
 */
@@ -91,8 +88,6 @@ protected:
 	virtual ~PxParticleClothCooker() {}
 };
 
-} // namespace ExtGpu
-
 /**
 \brief Creates a PxParticleClothCooker.
 
@@ -106,8 +101,8 @@ protected:
 
 \return A pointer to the new PxParticleClothCooker.
 */
-ExtGpu::PxParticleClothCooker* PxCreateParticleClothCooker(PxU32 vertexCount, physx::PxVec4* inVertices, PxU32 triangleIndexCount, PxU32* inTriangleIndices,
-	PxU32 constraintTypeFlags = ExtGpu::PxParticleClothConstraint::eTYPE_ALL, PxVec3 verticalDirection = PxVec3(0.0f,1.0f,0.0f), PxReal bendingConstraintMaxAngle = 20.0f/360.0f*PxTwoPi
+PxParticleClothCooker* PxCreateParticleClothCooker(PxU32 vertexCount, physx::PxVec4* inVertices, PxU32 triangleIndexCount, PxU32* inTriangleIndices,
+	PxU32 constraintTypeFlags = PxParticleClothConstraint::eTYPE_ALL, PxVec3 verticalDirection = PxVec3(0.0f,1.0f,0.0f), PxReal bendingConstraintMaxAngle = 20.0f/360.0f*PxTwoPi
 );
 
 

@@ -64,6 +64,7 @@
 #include "extensions/PxConvexMeshExt.h"
 #include "extensions/PxSamplingExt.h"
 #include "extensions/PxTetrahedronMeshExt.h"
+#include "extensions/PxParticleExt.h"
 
 /** \brief Initialize the PhysXExtensions library. 
 

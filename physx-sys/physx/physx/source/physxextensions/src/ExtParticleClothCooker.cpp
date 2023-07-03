@@ -452,7 +452,7 @@ void PxParticleClothCookerImpl::calculateMeshVolume()
 
 } // namespace ExtGpu
 
-ExtGpu::PxParticleClothCooker* PxCreateParticleClothCooker(PxU32 vertexCount, PxVec4* inVertices, PxU32 triangleIndexCount, PxU32* inTriangleIndices,
+PxParticleClothCooker* PxCreateParticleClothCooker(PxU32 vertexCount, PxVec4* inVertices, PxU32 triangleIndexCount, PxU32* inTriangleIndices,
 	PxU32 constraintTypeFlags, PxVec3 verticalDirection, PxReal bendingConstraintMaxAngle)
 {
 	return PX_NEW(ExtGpu::PxParticleClothCookerImpl)(vertexCount, inVertices, triangleIndexCount, inTriangleIndices,

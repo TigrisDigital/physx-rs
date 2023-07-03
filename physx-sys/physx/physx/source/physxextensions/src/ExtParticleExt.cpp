@@ -37,8 +37,6 @@
 
 namespace physx
 {
-namespace ExtGpu
-{
 
 void PxDmaDataToDevice(PxCudaContextManager* cudaContextManager, PxParticleBuffer* particleBuffer, const PxParticleBufferDesc& desc)
 {
@@ -765,5 +763,4 @@ PxParticleRigidBufferHelper* PxCreateParticleRigidBufferHelper(const PxU32 maxRi
 	return ret;
 }
 
-} //namespace ExtGpu
 } //namespace physx
