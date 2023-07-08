@@ -2329,6 +2329,7 @@ int main() {
             sg.add_field("float frictionCorrelationDistance", "frictionCorrelationDistance", "f32", sizeof(float), unsafe_offsetof(physx_PxSceneDesc_Pod, frictionCorrelationDistance));
             sg.add_field("uint32_t flags", "flags", "PxSceneFlags", sizeof(physx::PxSceneFlags), unsafe_offsetof(physx_PxSceneDesc_Pod, flags));
             sg.add_field("physx_PxCpuDispatcher_Pod* cpuDispatcher", "cpuDispatcher", "*mut PxCpuDispatcher", sizeof(physx::PxCpuDispatcher*), unsafe_offsetof(physx_PxSceneDesc_Pod, cpuDispatcher));
+            sg.add_field("physx_PxCudaContextManager_Pod* cudaContextManager", "cudaContextManager", "*mut PxCudaContextManager", sizeof(physx::PxCudaContextManager*), unsafe_offsetof(physx_PxSceneDesc_Pod, cudaContextManager));
             sg.add_field("void* userData", "userData", "*mut std::ffi::c_void", sizeof(void*), unsafe_offsetof(physx_PxSceneDesc_Pod, userData));
             sg.add_field("uint32_t solverBatchSize", "solverBatchSize", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxSceneDesc_Pod, solverBatchSize));
             sg.add_field("uint32_t solverArticulationBatchSize", "solverArticulationBatchSize", "u32", sizeof(uint32_t), unsafe_offsetof(physx_PxSceneDesc_Pod, solverArticulationBatchSize));

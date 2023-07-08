@@ -87,6 +87,8 @@ use physx_sys::{
     PxParticleMaterial,
     PxParticleAndDiffuseBuffer,
     PxParticleBuffer,
+    PxParticleAndDiffuseBufferDesc,
+    PxParticleBufferDesc,
 };
 
 // Misc
@@ -201,7 +203,9 @@ DeriveClass!(PxTriangleMesh: PxBase);
 DeriveClass!(PxPBDParticleSystem: PxParticleSystem, PxActor);
 DeriveClass!(PxParticleSystem: PxActor);
 DeriveClass!(PxPBDMaterial: PxParticleMaterial);
+DeriveClass!(PxParticleBuffer);
 DeriveClass!(PxParticleAndDiffuseBuffer: PxParticleBuffer);
+DeriveClass!(PxParticleAndDiffuseBufferDesc: PxParticleBufferDesc);
 
 DeriveClass!(PxFoundation);
 DeriveClass!(PxPhysics);

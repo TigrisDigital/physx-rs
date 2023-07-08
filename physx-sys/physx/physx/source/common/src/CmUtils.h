@@ -37,6 +37,7 @@
 #include "foundation/PxArray.h"
 #include "foundation/PxAllocator.h"
 #include "foundation/PxMemory.h"
+#include "iostream"
 
 namespace physx
 {
@@ -46,11 +47,21 @@ namespace Cm
 template<class DstType, class SrcType>
 PX_FORCE_INLINE PxU32 getArrayOfPointers(DstType** PX_RESTRICT userBuffer, PxU32 bufferSize, PxU32 startIndex, SrcType*const* PX_RESTRICT src, PxU32 size)
 {
+    std::cout<<"here13: from c++"<<std::endl;
 	const PxU32 remainder = PxU32(PxMax<PxI32>(PxI32(size - startIndex), 0));
 	const PxU32 writeCount = PxMin(remainder, bufferSize);
+    std::cout<<"here14: from c++"<<std::endl;
 	src += startIndex;
-	for(PxU32 i=0;i<writeCount;i++)
-		userBuffer[i] = static_cast<DstType*>(src[i]);
+    std::cout<<"here15: from c++"<<std::endl;
+	for(PxU32 i=0;i<writeCount;i++) {
+        std::cout<<"here17: from c++"<<std::endl;
+        src[i];
+        std::cout<<"here18: from c++"<<std::endl;
+        static_cast<DstType*>(src[i]);
+        std::cout<<"here19: from c++"<<std::endl;
+        userBuffer[i] = static_cast<DstType*>(src[i]);
+    }
+    std::cout<<"here16: from c++"<<std::endl;
 	return writeCount;
 }
 

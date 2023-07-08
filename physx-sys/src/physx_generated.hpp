@@ -10150,6 +10150,21 @@ extern "C" {
         return return_val_pod;
     }
 
+    uint32_t PxScene_getNbParticleSystems(physx_PxScene_Pod const* self__pod, int32_t type_pod) {
+        physx::PxScene const* self_ = reinterpret_cast<physx::PxScene const*>(self__pod);
+        auto type = static_cast<physx::PxParticleSolverType::Enum>(type_pod);
+        uint32_t return_val = self_->getNbParticleSystems(type);
+        return return_val;
+    }
+
+    uint32_t PxScene_getParticleSystems(physx_PxScene_Pod const* self__pod, int32_t type_pod, physx_PxParticleSystem_Pod** userBuffer_pod, uint32_t bufferSize, uint32_t startIndex) {
+        physx::PxScene const* self_ = reinterpret_cast<physx::PxScene const*>(self__pod);
+        auto type = static_cast<physx::PxParticleSolverType::Enum>(type_pod);
+        physx::PxParticleSystem** userBuffer = reinterpret_cast<physx::PxParticleSystem**>(userBuffer_pod);
+        uint32_t return_val = self_->getParticleSystems(type, userBuffer, bufferSize, startIndex);
+        return return_val;
+    }
+
     uint32_t PxScene_getNbArticulations(physx_PxScene_Pod const* self__pod) {
         physx::PxScene const* self_ = reinterpret_cast<physx::PxScene const*>(self__pod);
         uint32_t return_val = self_->getNbArticulations();
@@ -10207,6 +10222,13 @@ extern "C" {
         physx::PxScene const* self_ = reinterpret_cast<physx::PxScene const*>(self__pod);
         physx::PxCpuDispatcher* return_val = self_->getCpuDispatcher();
         auto return_val_pod = reinterpret_cast<physx_PxCpuDispatcher_Pod*>(return_val);
+        return return_val_pod;
+    }
+
+    physx_PxCudaContextManager_Pod* PxScene_getCudaContextManager(physx_PxScene_Pod const* self__pod) {
+        physx::PxScene const* self_ = reinterpret_cast<physx::PxScene const*>(self__pod);
+        physx::PxCudaContextManager* return_val = self_->getCudaContextManager();
+        auto return_val_pod = reinterpret_cast<physx_PxCudaContextManager_Pod*>(return_val);
         return return_val_pod;
     }
 

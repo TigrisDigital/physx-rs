@@ -11854,6 +11854,20 @@ extern "C" {
     /// A pointer to the list of active PxActors generated during the last call to fetchResults().
     pub fn PxScene_getActiveActors_mut(self_: *mut PxScene, nbActorsOut: *mut u32) -> *mut *mut PxActor;
 
+    /// Retrieve the number of particle systems of the requested type in the scene.
+    ///
+    /// the number particle systems.
+    ///
+    /// See getParticleSystems(), PxParticleSolverType
+    pub fn PxScene_getNbParticleSystems(self_: *const PxScene, type_: PxParticleSolverType) -> u32;
+
+    /// Retrieve an array of all the particle systems of the requested type in the scene.
+    ///
+    /// Number of particle systems written to the buffer.
+    ///
+    /// See getNbParticleSystems(), PxParticleSolverType
+    pub fn PxScene_getParticleSystems(self_: *const PxScene, type_: PxParticleSolverType, userBuffer: *mut *mut PxParticleSystem, bufferSize: u32, startIndex: u32) -> u32;
+
     /// Returns the number of articulations in the scene.
     ///
     /// the number of articulations in this scene.
@@ -11941,6 +11955,12 @@ extern "C" {
 
     /// Return the cpu dispatcher that was set in PxSceneDesc::cpuDispatcher when creating the scene with PxPhysics::createScene
     pub fn PxScene_getCpuDispatcher(self_: *const PxScene) -> *mut PxCpuDispatcher;
+
+    /// Return the CUDA context manager that was set in PxSceneDesc::cudaContextManager when creating the scene with PxPhysics::createScene
+    ///
+    /// Platform specific:
+    /// Applies to PC GPU only.
+    pub fn PxScene_getCudaContextManager(self_: *const PxScene) -> *mut PxCudaContextManager;
 
     /// Reserves a new client ID.
     ///

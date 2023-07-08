@@ -1775,7 +1775,7 @@ pub struct PxSceneDesc {
     pub frictionCorrelationDistance: f32,
     pub flags: PxSceneFlags,
     pub cpuDispatcher: *mut PxCpuDispatcher,
-    pub structgen_pad2: [u8; 8],
+    pub cudaContextManager: *mut PxCudaContextManager,
     pub userData: *mut std::ffi::c_void,
     pub solverBatchSize: u32,
     pub solverArticulationBatchSize: u32,
@@ -1794,7 +1794,7 @@ pub struct PxSceneDesc {
     pub gpuComputeVersion: u32,
     pub contactPairSlabSize: u32,
     pub sceneQuerySystem: *mut PxSceneQuerySystem,
-    pub structgen_pad3: [u8; 8],
+    pub structgen_pad2: [u8; 8],
 }
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "debug-structs", derive(Debug))]

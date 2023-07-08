@@ -520,7 +520,7 @@ class PxScene : public PxSceneSQSystem
 
 	See getParticleSystems(), PxParticleSolverType
 	*/
-	PX_DEPRECATED virtual PxU32				getNbParticleSystems(PxParticleSolverType::Enum type) const = 0;
+	virtual PxU32				getNbParticleSystems(PxParticleSolverType::Enum type) const = 0;
 
 	/**
 	\brief Retrieve an array of all the particle systems of the requested type in the scene.
@@ -533,7 +533,7 @@ class PxScene : public PxSceneSQSystem
 
 	See getNbParticleSystems(), PxParticleSolverType
 	*/
-	PX_DEPRECATED virtual	PxU32				getParticleSystems(PxParticleSolverType::Enum type, PxParticleSystem** userBuffer, PxU32 bufferSize, PxU32 startIndex = 0) const = 0;
+	virtual	PxU32				getParticleSystems(PxParticleSolverType::Enum type, PxParticleSystem** userBuffer, PxU32 bufferSize, PxU32 startIndex = 0) const = 0;
 
 	/**
 	\brief Retrieve the number of FEM cloths in the scene.
@@ -726,7 +726,7 @@ class PxScene : public PxSceneSQSystem
 
 	@see PxSceneDesc::cudaContextManager, PxPhysics::createScene
 	*/
-	PX_DEPRECATED virtual PxCudaContextManager* getCudaContextManager() const = 0;
+	virtual PxCudaContextManager* getCudaContextManager() const = 0;
 
 	//@}
 	/************************************************************************************************/

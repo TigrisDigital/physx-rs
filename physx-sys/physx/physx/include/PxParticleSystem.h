@@ -135,7 +135,7 @@ A particle system simulates a bunch of particles that interact with each other. 
 with friction (granular material) ore more complex like fluid interactions, cloth, inflatables etc.
 
 */
-class  PxParticleSystem : public PxActor
+class PxParticleSystem : public PxActor
 {
 public:
 

@@ -34,9 +34,14 @@
 #include "PxRigidBody.h"
 #include "cudamanager/PxCudaContextManager.h"
 #include "cudamanager/PxCudaContext.h"
+#include "iostream"
 
 namespace physx
 {
+
+PxVec4* PxDmaDataFromDevice() {
+    return NULL;
+}
 
 void PxDmaDataToDevice(PxCudaContextManager* cudaContextManager, PxParticleBuffer* particleBuffer, const PxParticleBufferDesc& desc)
 {
@@ -48,7 +53,7 @@ void PxDmaDataToDevice(PxCudaContextManager* cudaContextManager, PxParticleBuffe
 	PxParticleVolume* volumes = particleBuffer->getParticleVolumes();
 
 	PxCudaContext* cudaContext = cudaContextManager->getCudaContext();
-
+    std::cout<<desc.numActiveParticles<<std::endl;
 	//KS - TODO - use an event to wait for this
 	cudaContext->memcpyHtoDAsync(CUdeviceptr(posInvMass), desc.positions, desc.numActiveParticles * sizeof(PxVec4), 0);
 	cudaContext->memcpyHtoDAsync(CUdeviceptr(velocities), desc.velocities, desc.numActiveParticles * sizeof(PxVec4), 0);

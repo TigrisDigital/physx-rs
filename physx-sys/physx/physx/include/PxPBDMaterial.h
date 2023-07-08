@@ -45,7 +45,7 @@ namespace physx
 
 	@see #PxPhysics.createPBDMaterial
 	*/
-	class  PxPBDMaterial : public PxParticleMaterial
+	class PxPBDMaterial : public PxParticleMaterial
 	{
 	public:
 		
@@ -211,7 +211,7 @@ namespace physx
 		virtual		bool	isKindOf(const char* name) const { return !::strcmp("PxPBDMaterial", name) || PxParticleMaterial::isKindOf(name); }
 	};
 
-	class  PxCustomMaterial : public PxParticleMaterial
+	class PxCustomMaterial : public PxParticleMaterial
 	{
 	public:
 

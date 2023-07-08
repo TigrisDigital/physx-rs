@@ -126,6 +126,8 @@ pub mod geometry;
 pub mod height_field;
 pub mod material;
 pub mod owner;
+pub mod particle_and_diffuse_buffer;
+pub mod particle_buffer;
 pub mod physics;
 pub mod pruning_structure;
 pub mod rigid_actor;

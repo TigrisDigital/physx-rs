@@ -77,7 +77,7 @@ A particle buffer is a container that specifies per-particle attributes of a set
 of a particle system. It exposes direct access to the underlying GPU buffers and is independent of the scene and particle system. Particle
 buffers can be added/removed from a particle system at any time between simulation steps, and transferred from one particle system to another.
 */
-class  PxParticleBuffer : public PxBase
+class PxParticleBuffer : public PxBase
 {
 public:
 
@@ -279,7 +279,7 @@ public:
 
 See #PxPhysics::createParticleAndDiffuseBuffer.
 */
-class  PxParticleAndDiffuseBuffer : public PxParticleBuffer
+class PxParticleAndDiffuseBuffer : public PxParticleBuffer
 {
 public:
 
@@ -425,7 +425,7 @@ struct  PX_PHYSX_CORE_API PxPartitionedParticleCloth
 
 See #PxPhysics::createParticleClothBuffer.
 */
-class  PxParticleClothBuffer : public PxParticleBuffer
+class PxParticleClothBuffer : public PxParticleBuffer
 {
 public:
 
@@ -487,7 +487,7 @@ private:
 
 See #PxPhysics::createParticleRigidBuffer.
 */
-class  PxParticleRigidBuffer : public PxParticleBuffer
+class PxParticleRigidBuffer : public PxParticleBuffer
 {
 public:
 	/**
@@ -565,7 +565,7 @@ any further modifications to #PxParticleClothBuffer::setCloths().
 
 See #PxCreateParticleClothPreprocessor, #PxParticleClothDesc, #PxPartitionedParticleCloth
 */
-class  PxParticleClothPreProcessor
+class PxParticleClothPreProcessor
 {
 public:
 

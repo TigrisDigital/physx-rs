@@ -534,7 +534,22 @@ fn main() {
         .define("PX_PHYSX_GPU_SHARED_LIB_NAME", "libPhysXGpu_64.so")
         .include("physx/physx/include")
         .include("physx/pxshared/include")
-        .include("physx/physx/source/foundation/include");
+        .include("physx/physx/source/foundation/include")
+        .include("physx/physx/source/physx/src")
+        .include("physx/physx/source/lowleveldynamics/include")
+        .include("physx/physx/source/common/src")
+        .include("physx/physx/source/lowlevel/api/include")
+        .include("physx/physx/source/geomutils/src")
+        .include("physx/physx/source/scenequery/include")
+        .include("physx/physx/source/geomutils/include")
+        .include("physx/physx/source/simulationcontroller/include")
+        .include("physx/physx/source/lowlevel/software/include")
+        .include("physx/physx/source/lowlevel/common/include/pipeline")
+        .include("physx/physx/source/lowlevel/common/include/utils")
+        .include("physx/physx/source/geomutils/src/contact")
+        .include("physx/physx/source/geomutils/src/pcm")
+        .include("physx/physx/source/simulationcontroller/src")
+        .include("physx/physx/source/lowlevelaabb/include");
 
     if cfg!(feature = "profile") {
         physx_cc.define("PX_PROFILE", Some("1"));

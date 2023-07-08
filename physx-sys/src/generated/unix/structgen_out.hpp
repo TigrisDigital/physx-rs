@@ -1466,7 +1466,7 @@ struct physx_PxSceneDesc_Pod {
     float frictionCorrelationDistance;
     uint32_t flags;
     physx_PxCpuDispatcher_Pod* cpuDispatcher;
-    char structgen_pad2[8];
+    physx_PxCudaContextManager_Pod* cudaContextManager;
     void* userData;
     uint32_t solverBatchSize;
     uint32_t solverArticulationBatchSize;
@@ -1485,7 +1485,7 @@ struct physx_PxSceneDesc_Pod {
     uint32_t gpuComputeVersion;
     uint32_t contactPairSlabSize;
     physx_PxSceneQuerySystem_Pod* sceneQuerySystem;
-    char structgen_pad3[8];
+    char structgen_pad2[8];
 };
 struct physx_PxSimulationStatistics_Pod {
     uint32_t nbActiveConstraints;

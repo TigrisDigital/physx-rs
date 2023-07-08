@@ -41,6 +41,7 @@
 #include "PxParticleSolverType.h"
 #include "PxCustomParticleSystemSolverCallback.h"
 #include "PxSparseGridParams.h"
+#include "iostream"
 
 namespace physx
 {
@@ -96,6 +97,7 @@ public:
 
 	void addParticleBuffer(PxParticleBuffer* particleBuffer)
 	{
+        std::cout<<particleBuffer->bufferIndex<<std::endl;
 		if (particleBuffer->bufferIndex == 0xffffffff)
 		{
 			switch (particleBuffer->getConcreteType())
