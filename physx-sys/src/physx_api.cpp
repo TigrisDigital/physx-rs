@@ -601,13 +601,9 @@ extern "C"
 
     physx_PxVec4_Pod *
     PxParticleAndDiffuseBuffer_getPositionInvMasses(physx_PxParticleAndDiffuseBuffer_Pod const *self__pod) {
-        std::cout << "here1: from c++" << std::endl;
         physx::PxParticleAndDiffuseBuffer const *self_ = reinterpret_cast<physx::PxParticleAndDiffuseBuffer const *>(self__pod);
-        std::cout << "here2: from c++" << std::endl;
         physx::PxVec4 *return_val = self_->getPositionInvMasses();
-        std::cout << "here3: from c++" << std::endl;
         auto return_val_pod = reinterpret_cast<physx_PxVec4_Pod *>(return_val);
-        std::cout << "here4: from c++" << std::endl;
         return return_val_pod;
     }
 
@@ -634,7 +630,7 @@ extern "C"
     }
 
     PxVec4* getVec4ArrayFromGPU(PxCudaContextManager *cudaContextManager, int array_size, PxVec4* pointer) {
-        PxVec4* buffer = (PxVec4*) malloc(sizeof(PxVec4) * array_size);
+        PxVec4* buffer = new PxVec4[array_size];
 
         cudaContextManager->acquireContext();
         PxCudaContext* cuda_context = cudaContextManager->getCudaContext();

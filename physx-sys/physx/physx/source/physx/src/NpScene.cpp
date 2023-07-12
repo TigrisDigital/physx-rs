@@ -1782,12 +1782,11 @@ PxU32 NpScene::getParticleSystems(PxParticleSolverType::Enum type, PxParticleSys
 	NP_READ_CHECK(this);
 
 #if PX_SUPPORT_GPU_PHYSX
-    std::cout<<"here10: from c++"<<std::endl;
+
 	switch (type)
 	{
 		case PxParticleSolverType::ePBD:
 		{
-            std::cout<<"here11: from c++"<<std::endl;
 			return Cm::getArrayOfPointers(userBuffer, bufferSize, startIndex, mPBDParticleSystems.getEntries(), mPBDParticleSystems.size());
 		}
 
@@ -2467,18 +2466,13 @@ PxU32 NpScene::getNbConstraints() const
 
 static PX_FORCE_INLINE PxU32 getArrayOfPointers(PxConstraint** PX_RESTRICT userBuffer, PxU32 bufferSize, PxU32 startIndex, Sc::ConstraintCore*const* PX_RESTRICT src, PxU32 size)
 {
-    std::cout<<"here12: from c++"<<std::endl;
 	const PxU32 remainder = PxU32(PxMax<PxI32>(PxI32(size - startIndex), 0));
 	const PxU32 writeCount = PxMin(remainder, bufferSize);
-    std::cout<<"here6: from c++"<<std::endl;
 	src += startIndex;
 	for(PxU32 i=0;i<writeCount;i++)
 	{
-        std::cout<<"here7: from c++"<<std::endl;
 		PxConstraint* pxc = src[i]->getPxConstraint();
-        std::cout<<"here8: from c++"<<std::endl;
 		userBuffer[i] = static_cast<PxConstraint*>(pxc);
-        std::cout<<"here9: from c++"<<std::endl;
 	}
 	return writeCount;
 }
