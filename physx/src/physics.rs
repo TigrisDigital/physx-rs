@@ -62,7 +62,6 @@ use physx_sys::{
     PxPhysics_createPruningStructure_mut,
     PxPhysics_createRigidDynamic_mut,
     PxPhysics_createRigidStatic_mut,
-    PxPhysics_createShape_mut_1,
     PxPhysics_createTriangleMesh_mut,
     PxPhysics_getBVHs,
     PxPhysics_getConvexMeshes,
@@ -82,7 +81,7 @@ use physx_sys::{
     PxTolerancesScale,
     PxTolerancesScale_new,
 };
-use physx_sys::{PxPhysics_createShape_mut, PxPhysics_createShape_mut_2};
+use physx_sys::PxPhysics_createShape_mut_2;
 
 pub use self::assert_handler::AssertHandler;
 pub use self::error_callback::ErrorCallback;

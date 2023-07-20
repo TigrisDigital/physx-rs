@@ -461,4 +461,6 @@ extern "C" {
     pub fn getVec4ArrayFromGPU(cuda_context_manager: *mut PxCudaContextManager, array_size: i32, pointer: *mut PxVec4) -> *mut PxVec4;
 
     pub fn freeVec4Array(cuda_context_manager: *mut PxCudaContextManager, pointer: *mut PxVec4);
+
+    pub fn setVec4ArrayFromHostMemory(cuda_context_manager: *mut PxCudaContextManager, array_size: i32, dest_pointer: *mut PxVec4, src_pointer: *mut PxVec4);
 }

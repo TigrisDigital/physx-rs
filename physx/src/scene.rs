@@ -27,8 +27,6 @@ use crate::{
     visual_debugger::PvdSceneClient,
 };
 
-use physx_sys::PxPBDParticleSystem;
-
 use std::{
     marker::PhantomData,
     ptr::{drop_in_place, null, null_mut},
@@ -131,16 +129,12 @@ pub enum SimulationThreadType {
     Default,
 }
 
+#[derive(Default)]
 pub enum FilterShaderDescriptor {
+    #[default]
     Default,
     Custom(physx_sys::SimulationFilterShader),
     CallDefaultFirst(physx_sys::SimulationFilterShader),
-}
-
-impl Default for FilterShaderDescriptor {
-    fn default() -> Self {
-        FilterShaderDescriptor::Default
-    }
 }
 
 /// A new type wrapper for PxScene.  Parametrized by its user data type,

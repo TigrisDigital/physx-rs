@@ -646,4 +646,11 @@ extern "C"
         cudaContextManager->releaseContext();
     }
 
+    void setVec4ArrayFromHostMemory(PxCudaContextManager *cudaContextManager, int array_size, PxVec4* dest_pointer, PxVec4* src_pointer) {
+        cudaContextManager->acquireContext();
+        PxCudaContext* cuda_context = cudaContextManager->getCudaContext();
+        cuda_context->memcpyHtoDAsync(CUdeviceptr(dest_pointer), src_pointer, array_size * sizeof(PxVec4), 0);
+        cudaContextManager->releaseContext();
+    }
+
 }
