@@ -289,6 +289,52 @@ pub type ErrorCallback =
 pub type AssertHandler = unsafe extern "C" fn(*const i8, *const i8, u32, *mut bool, *const c_void);
 
 extern "C" {
+    pub fn setU32At(base: *mut u32, index: i32, value: u32);
+
+    pub fn getU32At(base: *const u32, index: i32) -> u32;
+
+    pub fn setVec4At(base: *mut PxVec4, index: i32, value: PxVec4);
+
+    pub fn getVec4At(base: *const PxVec4, index: i32) -> *mut PxVec4;
+
+    pub fn vec4SetX(_address: *mut PxVec4, value: f32);
+
+    pub fn vec4SetY(_address: *mut PxVec4, value: f32);
+
+    pub fn vec4SetZ(_address: *mut PxVec4, value: f32);
+
+    pub fn vec4SetW(_address: *mut PxVec4, value: f32);
+
+    pub fn vec4GetX(_address: *mut PxVec4) -> f32;
+
+    pub fn vec4GetY(_address: *mut PxVec4) -> f32;
+
+    pub fn vec4GetZ(_address: *mut PxVec4) -> f32;
+
+    pub fn vec4GetW(_address: *mut PxVec4) -> f32;
+
+    pub fn PxParticleBufferDesc_setPhases(_address: *mut PxParticleBufferDesc, value: *mut u32);
+
+    pub fn PxParticleBufferDesc_setVelocities(_address: *mut PxParticleBufferDesc, value: *mut PxVec4);
+
+    pub fn PxParticleBufferDesc_setPositions(_address: *mut PxParticleBufferDesc, value: *mut PxVec4);
+
+    pub fn alloc_pinned_host_buffer_pxu32(
+        cuda_context_manager: *mut PxCudaContextManager,
+        num_elements: u32,
+    ) -> *mut u32;
+
+    pub fn alloc_pinned_host_buffer_pxvec4(
+        cuda_context_manager: *mut PxCudaContextManager,
+        num_elements: u32,
+    ) -> *mut PxVec4;
+
+    pub fn physx_create_cuda_context_manager(
+        foundation: *mut PxFoundation,
+        desc: *const PxCudaContextManagerDesc,
+        profilerCallback: *mut PxProfilerCallback,
+    ) -> *mut PxCudaContextManager;
+
     pub fn physx_create_foundation() -> *mut PxFoundation;
     pub fn physx_create_foundation_with_alloc(
         allocator: *mut PxDefaultAllocator,
@@ -405,4 +451,14 @@ extern "C" {
         line: i32,
         ignore: *mut bool,
     ) -> ();
+
+    pub fn PxParticleAndDiffuseBuffer_getPositionInvMasses(self_: *const PxParticleAndDiffuseBuffer) -> *mut PxVec4;
+
+    pub fn PxScene_getPBDParticleSystems(cuda_context_manager: *mut PxCudaContextManager, self_: *const PxScene, type_: PxParticleSolverType, bufferSize: u32, startIndex: u32) -> *mut PxParticleSystem;
+
+    pub fn PxParticleSystem_getParticleBuffer(particle_system: *const PxParticleSystem) -> *mut PxParticleBuffer;
+
+    pub fn getVec4ArrayFromGPU(cuda_context_manager: *mut PxCudaContextManager, array_size: i32, pointer: *mut PxVec4) -> *mut PxVec4;
+
+    pub fn freeVec4Array(cuda_context_manager: *mut PxCudaContextManager, pointer: *mut PxVec4);
 }

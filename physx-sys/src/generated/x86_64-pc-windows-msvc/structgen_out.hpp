@@ -2080,3 +2080,4 @@ struct physx_PxPvd_Pod {
 struct physx_PxPvdTransport_Pod {
     void* vtable_;
 };
+typedef unsigned long long physx_CUdeviceptr_Pod;

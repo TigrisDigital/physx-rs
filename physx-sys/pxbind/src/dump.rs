@@ -43,7 +43,7 @@ pub fn get_ast(header: impl AsRef<std::path::Path>) -> anyhow::Result<Vec<u8>> {
         // Ignore all warnings, we don't care about C++ shenanigans
         "-w",
         // We don't want this
-        "-DDISABLE_CUDA_PHYSX",
+        //"-DDISABLE_CUDA_PHYSX",
         "-fcolor-diagnostics",
         // Add the root include directory so that clang knows how to find
         // all of the includes

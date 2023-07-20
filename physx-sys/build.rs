@@ -252,6 +252,19 @@ fn physx(ctx: &mut Context) {
     // there's always a "core"
     let sources = include!("sources/core");
     ctx.add_sources("source/physx/src", &sources);
+
+    ctx.add_sources(
+        "source/physx/src/gpu",
+        &["PxGpu", "PxPhysXGpuModuleLoader"],
+    );
+
+    let sources = include!("sources/physxextensions");
+    ctx.add_sources("source/physxextensions/src", &sources);
+
+    ctx.add_sources(
+        "source/physx/src/device/linux",
+        &["PhysXIndicatorLinux"],
+    );
 }
 
 fn add_common(ctx: &mut Context) {
@@ -300,6 +313,13 @@ fn add_common(ctx: &mut Context) {
             "source/foundation/include",
             "source/common/src",
             "source/filebuf/include", // only used by pvd
+            "include/cudamanager",
+            "source/physxgpu/include",
+            "include/gpu",
+            "source/physx/src/device",
+            "include/extensions",
+            "source/physxextensions/src"
+            //"source/physx/src/gpu"
         ]
         .iter()
         .map(|inc| root.join(inc)),
@@ -316,13 +336,15 @@ fn add_common(ctx: &mut Context) {
     // Always build as a static library
     builder.define("PX_PHYSX_STATIC_LIB", None);
     // Always disable GPU features, at least for now
-    builder.define("DISABLE_CUDA_PHYSX", None);
+    //builder.define("DISABLE_CUDA_PHYSX", None);
 
     if ccenv.emit_debug_info {
         builder.define("PX_DEBUG", None).define("PX_CHECKED", None);
     }
 
     builder.define("PX_SUPPORT_PVD", "1");
+    builder.define("PX_SUPPORT_GPU_PHYSX", "1");
+    builder.define("PX_PHYSX_GPU_SHARED_LIB_NAME", "libPhysXGpu_64.so");
 
     if cfg!(feature = "profile") {
         builder.define("PX_PROFILE", "1");
@@ -441,6 +463,7 @@ fn cc_compile(target_env: Environment) {
         ctx.builder.include(dir);
     }
 
+    ctx.builder.cuda(true);
     ctx.builder.compile("physx");
 }
 
@@ -504,12 +527,29 @@ fn main() {
         .debug(false)
         .use_plt(false)
         .warnings(false)
+        .cuda(true)
         .extra_warnings(false)
         .define("NDEBUG", None)
         .define("PX_PHYSX_STATIC_LIB", None)
+        .define("PX_PHYSX_GPU_SHARED_LIB_NAME", "libPhysXGpu_64.so")
         .include("physx/physx/include")
         .include("physx/pxshared/include")
-        .include("physx/physx/source/foundation/include");
+        .include("physx/physx/source/foundation/include")
+        .include("physx/physx/source/physx/src")
+        .include("physx/physx/source/lowleveldynamics/include")
+        .include("physx/physx/source/common/src")
+        .include("physx/physx/source/lowlevel/api/include")
+        .include("physx/physx/source/geomutils/src")
+        .include("physx/physx/source/scenequery/include")
+        .include("physx/physx/source/geomutils/include")
+        .include("physx/physx/source/simulationcontroller/include")
+        .include("physx/physx/source/lowlevel/software/include")
+        .include("physx/physx/source/lowlevel/common/include/pipeline")
+        .include("physx/physx/source/lowlevel/common/include/utils")
+        .include("physx/physx/source/geomutils/src/contact")
+        .include("physx/physx/source/geomutils/src/pcm")
+        .include("physx/physx/source/simulationcontroller/src")
+        .include("physx/physx/source/lowlevelaabb/include");
 
     if cfg!(feature = "profile") {
         physx_cc.define("PX_PROFILE", Some("1"));
@@ -596,9 +636,6 @@ fn main() {
         structgen.current_dir(&output_dir_path);
         structgen.status().expect("structgen failed to execute, if you are cross compiling to aarch64 you need to have qemu-aarch64 installed");
 
-        println!("cargo:rerun-if-changed=src/structgen/structgen.cpp");
-        println!("cargo:rerun-if-changed=src/structgen/structgen.hpp");
-
         output_dir_path
     } else {
         let mut include = PathBuf::from("src/generated");
@@ -637,10 +674,13 @@ fn main() {
         .file("src/physx_api.cpp")
         .compile("physx_api");
 
+    println!("cargo:rerun-if-changed=src/structgen/structgen.cpp");
+    println!("cargo:rerun-if-changed=src/structgen/structgen.hpp");
+    println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-changed=src/physx_generated.hpp");
     println!("cargo:rerun-if-changed=src/physx_generated.rs");
     println!("cargo:rerun-if-changed=src/physx_api.cpp");
 
     // TODO: use the cloned git revision number instead
-    println!("cargo:rerun-if-changed=physx/physx/include/foundation/PxPhysicsVersion.h");
+    println!("cargo:rerun-if-changed=PhysX/physx/include/PxPhysicsVersion.h");
 }
